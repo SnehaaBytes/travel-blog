@@ -1,0 +1,127 @@
+/* ==== Dark Theme Review Page ==== */
+.reviews-container {
+  padding: 60px 20px;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  text-align: center;
+  font-family: 'Poppins', sans-serif;
+  min-height: 100vh;
+  color: #f1f5f9;
+}
+
+.title {
+  font-size: 2.3rem;
+  color: #e2e8f0;
+  margin-bottom: 40px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-top: 30px;
+}
+
+/* ==== Grid Layout ==== */
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 25px;
+  justify-items: center;
+  align-items: stretch;
+  padding: 0 10px;
+}
+
+/* ==== Review Card ==== */
+.review-card {
+  background: rgba(30, 41, 59, 0.85);
+  border-radius: 16px;
+  box-shadow: 0 0 20px rgba(148, 163, 184, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  padding: 25px;
+  width: 100%;
+  max-width: 360px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
+}
+
+.review-card:hover {
+  transform: translateY(-5px);
+  border-color: #38bdf8;
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.2);
+}
+
+/* ==== Stars ==== */
+.stars {
+  margin-bottom: 12px;
+  font-size: 1.3rem;
+}
+
+.star {
+  color: #475569;
+  /* muted grey for empty stars */
+  transition: color 0.3s ease;
+}
+
+.star.filled {
+  color: #facc15;
+  /* gold */
+}
+
+/* ==== Text Styles ==== */
+.review-text {
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  font-style: italic;
+  margin-bottom: 12px;
+}
+
+.review-author {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* ==== Animations ==== */
+.review-card {
+  animation: fadeIn 0.6s ease forwards;
+  opacity: 0;
+}
+
+.review-card:nth-child(odd) {
+  animation-delay: 0.1s;
+}
+
+.review-card:nth-child(even) {
+  animation-delay: 0.2s;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* ==== Responsive Design ==== */
+@media (max-width: 768px) {
+  .title {
+    font-size: 1.9rem;
+  }
+
+  .reviews-container {
+    padding: 40px 15px;
+  }
+
+  .review-card {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.6rem;
+  }
+
+  .review-text {
+    font-size: 0.9rem;
+  }
+
+  .review-author {
+    font-size: 0.85rem;
+  }
+}
