@@ -1,77 +1,32 @@
-# Travel Blog Project
+# Travel Blog Backend
 
-A full-stack web application for travel enthusiasts to explore destinations in India, chat with other travelers, and share experiences.
-
-## Project Overview
-
-This project has been migrated from a traditional HTML/CSS/JS application to a modern React application with a Node.js/Express/MongoDB backend.
-
-The project is organized into two main directories:
-- `frontend/`: Contains the React application
-- `backend/`: Contains the Express server and MongoDB models
+This is the backend part of the Travel Blog application, built with Node.js, Express, and MongoDB.
 
 ## Features
 
-- **Home Page**: Showcases featured destinations with a beautiful video background
-- **Destinations Page**: Displays various travel destinations with details and images
-- **Chat System**: Real-time chat functionality for users to communicate
-- **User Authentication**: Register and login system with backend API integration
-- **About Page**: Information about the team behind the travel blog
-- **Responsive Design**: Works on desktop, tablet, and mobile devices
+- RESTful API for travel destinations
+- User authentication (register/login)
+- Chat message storage and retrieval
+- MongoDB database integration
 
 ## Tech Stack
 
-### Frontend
-- React.js
-- React Router for navigation
-- Axios for API requests
-- CSS for styling
-
-### Backend
 - Node.js
 - Express.js
 - MongoDB (Mongoose)
 - CORS for cross-origin requests
 
-## Setup Instructions
+## Project Structure
 
-### Backend Setup
-
-1. Navigate to the backend directory:
 ```
-cd backend
+backend/
+├── models/
+│   ├── User.js
+│   ├── Destination.js
+│   └── Message.js
+├── server.js
+└── package.json
 ```
-
-2. Install dependencies:
-```
-npm install
-```
-
-3. Start the server:
-```
-npm start
-```
-
-### Frontend Setup
-
-1. Navigate to the frontend directory:
-```
-cd frontend
-```
-
-2. Install dependencies:
-```
-npm install
-```
-
-3. Start the development server:
-```
-npm run dev
-```
-
-4. Open your browser and navigate to the URL shown in the terminal (typically http://localhost:5173)
-
-For more detailed instructions, refer to the README.md files in the respective directories.
 
 ## API Endpoints
 
@@ -81,21 +36,32 @@ For more detailed instructions, refer to the README.md files in the respective d
 - `POST /api/login`: Authenticate a user
 - `GET /api/messages`: Get all chat messages
 - `POST /api/messages`: Add a new chat message
+- `DELETE /api/messages/:id`: Delete a specific message
 
-## Future Enhancements
+## Setup Instructions
 
-- Add a booking system for travel packages
-- Implement user profiles with travel history
-- Add a review and rating system for destinations
-- Integrate a weather API for destination weather information
-- Add a blog section for travel stories and experiences
+1. Install dependencies:
+```
+npm install
+```
 
-## Contributors
+2. Start the server:
+```
+npm start
+```
 
-- Sneha Singh
-- Neha
-- Prithvi
+3. For development with auto-restart:
+```
+npm run dev
+```
 
-## License
+## MongoDB Setup
 
-This project is licensed under the ISC License.
+The application requires MongoDB to be running. It will connect to a local MongoDB instance by default.
+
+Default connection string: `mongodb://localhost:27017/`
+Database name: `travel_blog`
+
+## Note
+
+The backend server should be running on port 3000 for the frontend to connect properly.

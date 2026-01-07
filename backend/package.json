@@ -1,27 +1,23 @@
 {
-  "name": "travel-blog",
+  "name": "travel-blog-backend",
   "version": "1.0.0",
-  "description": "A full-stack travel blog application with React frontend and Express backend",
-  "main": "index.js",
+  "main": "server.js",
+  "type": "module",
   "scripts": {
-    "start:backend": "cd backend && npm start",
-    "start:frontend": "cd frontend && npm run dev",
-    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
-    "install:backend": "cd backend && npm install",
-    "install:frontend": "cd frontend && npm install",
-    "install:all": "npm install && npm run install:backend && npm run install:frontend",
-    "build": "cd frontend && npm run build"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
-  "keywords": [
-    "react",
-    "express",
-    "mongodb",
-    "travel",
-    "blog"
-  ],
+  "keywords": [],
   "author": "",
   "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "mongoose": "^8.18.1"
+  },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "nodemon": "^3.0.1"
   }
 }
