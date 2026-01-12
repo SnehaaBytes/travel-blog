@@ -3,6 +3,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import bcrypt from 'bcrypt';
 
 // Load env variables
 dotenv.config();
@@ -16,7 +17,13 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+app.options("*", cors());
+
 
 // Root
 app.get('/', (req, res) => {
@@ -107,14 +114,24 @@ app.get('/api/destinations/:id', async (req, res) => {
 app.post('/api/register', async (req, res) => {
   try {
     const { username, password } = req.body;
-    if (!username || !password)
+
+    if (!username || !password) {
       return res.status(400).json({ message: 'Required fields missing' });
+    }
 
     const exists = await User.findOne({ username });
-    if (exists)
+    if (exists) {
       return res.status(400).json({ message: 'User already exists' });
+    }
 
-    const user = new User({ username, password });
+    // 🔐 HASH PASSWORD
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = new User({
+      username,
+      password: hashedPassword,
+    });
+
     await user.save();
 
     res.status(201).json({ message: 'Registered successfully' });
@@ -123,20 +140,28 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+
 app.post('/api/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
     const user = await User.findOne({ username });
-    if (!user) return res.status(404).json({ message: 'User not found' });
-    if (user.password !== password)
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // 🔐 COMPARE HASHED PASSWORD
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       return res.status(401).json({ message: 'Invalid password' });
+    }
 
     res.json({ message: 'Login successful', username });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
+
 
 // ====================
 // Messages
