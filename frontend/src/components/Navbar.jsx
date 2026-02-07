@@ -1,158 +1,206 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../services/AuthContext';
+import { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  FiSearch,
+  FiMenu,
+  FiX,
+  FiSun,
+  FiMoon,
+} from "react-icons/fi";
+import { useAuth } from "../services/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
-  const [searchVisible, setSearchVisible] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Handle scroll effect
+  // Scroll background effect
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const handleScroll = () => setIsScrolled(window.scrollY > 40);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close mobile menu when route changes
+  // Close mobile menu on route change
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location]);
 
-  const toggleSearchBar = () => setSearchVisible(!searchVisible);
-  const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
-
   const handleSearchSubmit = (e) => {
-    if (e.key === 'Enter' && searchTerm.trim() !== '') {
+    if (e.key === "Enter" && searchTerm.trim()) {
       navigate(`/destinations?search=${encodeURIComponent(searchTerm)}`);
-      setSearchVisible(false); // close search after submit
-      setSearchTerm('');
+      setSearchTerm("");
     }
   };
 
   return (
     <nav
-      className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-black/90 shadow-lg py-2' : 'bg-black py-4'
+      className={`fixed top-0 w-full z-50 transition-all duration-300
+        ${
+          isScrolled
+            ? "bg-zinc-900/70 backdrop-blur-xl border-b border-white/10"
+            : "bg-gradient-to-r from-zinc-900/90 via-black/80 to-zinc-900/90"
         }`}
     >
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+
           {/* Logo */}
-          <Link to="/" className="flex items-center">
-            <h1 className="text-3xl md:text-4xl font-bold text-white">
-              Travel<span className="text-indigo-500">Blogs</span>
-            </h1>
+          <Link
+            to="/"
+            className="text-xl font-semibold tracking-tight text-white"
+          >
+            Travel<span className="text-indigo-400 font-bold">Blogs</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6">
-            <Link to="/" className="text-white hover:text-indigo-500 transition font-medium">Home</Link>
-            <Link to="/destinations" className="text-white hover:text-indigo-500 transition font-medium">Destinations</Link>
-            <Link to="/review" className="text-white hover:text-indigo-500 transition font-medium">Review</Link>
-            <Link to="/about" className="text-white hover:text-indigo-500 transition font-medium">About</Link>
+          <div className="hidden md:flex items-center gap-8">
 
-            {/* Search */}
-            <div className="relative">
-              <button
-                onClick={toggleSearchBar}
-                className="text-white hover:text-indigo-500 transition"
-                aria-label="Search"
-              >
-                <i className="fas fa-search text-lg"></i>
-              </button>
-              {searchVisible && (
-                <div className="absolute right-0 top-10 w-60 bg-gray-900 rounded-md shadow-lg overflow-hidden">
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyDown={handleSearchSubmit}
-                    className="w-full p-3 focus:outline-none bg-gray-900 text-white"
-                    placeholder="Search destinations..."
-                  />
-                </div>
-              )}
+            {/* Links */}
+            <div className="flex gap-6 text-sm font-medium">
+              {["Home", "Destinations", "Review", "About"].map((item) => (
+                <Link
+                  key={item}
+                  to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
+                  className="text-white/70 hover:text-white transition relative
+                             after:absolute after:left-0 after:-bottom-1
+                             after:h-[2px] after:w-0 after:bg-indigo-400
+                             hover:after:w-full after:transition-all"
+                >
+                  {item}
+                </Link>
+              ))}
             </div>
 
-            {/* Auth Buttons */}
-            {user ? (
-              <div className="flex items-center space-x-4">
-                <span className="text-white font-medium">Welcome, {user.username}</span>
+            {/* Actions */}
+            <div className="flex items-center gap-3">
+
+              {/* Search */}
+              <div className="relative group">
+                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={handleSearchSubmit}
+                  placeholder="Search destinations"
+                  className="w-44 focus:w-56 transition-all
+                             bg-white/5 text-white text-sm
+                             pl-9 pr-4 py-2 rounded-full
+                             border border-white/10
+                             placeholder:text-white/40
+                             focus:outline-none
+                             focus:ring-2 focus:ring-indigo-500/40"
+                />
+              </div>
+
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                aria-label="Toggle theme"
+                className="h-9 w-9 flex items-center justify-center
+                           rounded-full
+                           bg-white/5 border border-white/10
+                           text-white/70
+                           hover:bg-white/10 hover:text-white
+                           transition"
+              >
+                {theme === "light" ? <FiMoon size={16} /> : <FiSun size={16} />}
+              </button>
+
+              {/* Auth */}
+              {user ? (
                 <button
                   onClick={logout}
-                  className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-md transition"
+                  className="px-4 py-2 text-sm font-medium rounded-full
+                             bg-indigo-500 hover:bg-indigo-600
+                             text-white transition"
                 >
                   Logout
                 </button>
-              </div>
-            ) : (
-              <Link
-                to="/login"
-                className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-md transition"
-              >
-                Login
-              </Link>
-            )}
+              ) : (
+                <Link
+                  to="/login"
+                  className="px-4 py-2 text-sm font-medium rounded-full
+                             bg-indigo-500 hover:bg-indigo-600
+                             text-white transition"
+                >
+                  Login
+                </Link>
+              )}
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden text-white focus:outline-none"
-            onClick={toggleMobileMenu}
+            className="md:hidden text-white"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >
-            <i className={`fas ${mobileMenuOpen ? 'fa-times' : 'fa-bars'} text-2xl`}></i>
+            {mobileMenuOpen ? <FiX size={26} /> : <FiMenu size={26} />}
           </button>
         </div>
 
         {/* Mobile Menu */}
-        <div
-          className={`md:hidden transition-all duration-300 overflow-hidden ${mobileMenuOpen ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'
-            }`}
-        >
-          <div className="flex flex-col space-y-4 py-4">
-            <Link to="/" className="text-white hover:text-indigo-500 transition font-medium">Home</Link>
-            <Link to="/destinations" className="text-white hover:text-indigo-500 transition font-medium">Destinations</Link>
-            <Link to="/review" className="text-white hover:text-indigo-500 transition font-medium">Review</Link>
-            <Link to="/about" className="text-white hover:text-indigo-500 transition font-medium">About</Link>
+        {mobileMenuOpen && (
+          <div
+            className="md:hidden mt-4 p-4 space-y-4 rounded-2xl
+                       bg-zinc-900/80 backdrop-blur-xl
+                       border border-white/10"
+          >
+            {["Home", "Destinations", "Review", "About"].map((item) => (
+              <Link
+                key={item}
+                to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
+                className="block text-white/80 hover:text-white transition"
+              >
+                {item}
+              </Link>
+            ))}
 
-            {/* Mobile Search */}
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleSearchSubmit}
-              className="w-full p-3 bg-gray-800 text-white rounded-md focus:outline-none"
-              placeholder="Search destinations..."
+              placeholder="Search"
+              className="w-full bg-white/10 px-4 py-2 rounded-full
+                         text-white placeholder:text-white/40
+                         focus:outline-none"
             />
 
-            {/* Auth Mobile */}
+            <button
+              onClick={toggleTheme}
+              className="flex items-center gap-2 text-white/80"
+            >
+              {theme === "light" ? <FiMoon /> : <FiSun />}
+              Toggle theme
+            </button>
+
             {user ? (
-              <div className="flex flex-col space-y-2">
-                <span className="text-white font-medium">Welcome, {user.username}</span>
-                <button
-                  onClick={logout}
-                  className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-md transition"
-                >
-                  Logout
-                </button>
-              </div>
+              <button
+                onClick={logout}
+                className="w-full bg-indigo-500 py-2 rounded-full"
+              >
+                Logout
+              </button>
             ) : (
               <Link
                 to="/login"
-                className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-md text-center transition"
+                className="block text-center bg-indigo-500 py-2 rounded-full"
               >
                 Login
               </Link>
             )}
           </div>
-        </div>
+        )}
       </div>
     </nav>
   );

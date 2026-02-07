@@ -1,30 +1,35 @@
 import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import destinationsData from './destinationsData';
 import DestinationDetails from './DestinationDetails';
 import './Destinations.css';
 
 const Destinations = () => {
-  const [selectedDest, setSelectedDest] = useState(null);
-  const [theme, setTheme] = useState(
-    () => localStorage.getItem('theme') || 'light'
-  );
+  const [selectedDest, setSelectedDest] = useState(null);
+  const [openedFromHome, setOpenedFromHome] = useState(false);
 
-  useEffect(() => {
-    document.body.className = theme;
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const toggleTheme = () => {
-    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
-  };
+  // Auto-open modal when redirected from Home (Explore button)
+  useEffect(() => {
+    if (location.state?.destinationTitle) {
+      const foundDest = destinationsData.find(
+        (d) => d.title === location.state.destinationTitle
+      );
 
-  return (
-    <>
-      {/* Theme Toggle Button */}
-      <button onClick={toggleTheme} className="theme-toggle">
-        {theme === 'light' ? '🌙' : '☀️'}
-      </button>
+      if (foundDest) {
+        setSelectedDest(foundDest);
+        setOpenedFromHome(location.state.from === 'home');
 
+        // Clear router state to avoid modal reopening on refresh
+        window.history.replaceState({}, document.title);
+      }
+    }
+  }, [location.state]);
+
+  return (
+    <>
       <div className="destinations-container">
         <div className="destinations-header">
           <h1>Popular Destinations</h1>
@@ -51,7 +56,10 @@ const Destinations = () => {
 
                     <button
                       className="details-btn"
-                      onClick={() => setSelectedDest(dest)}
+                      onClick={() => {
+                        setSelectedDest(dest);
+                        setOpenedFromHome(false); // opened from Destinations page
+                      }}
                     >
                       Show Details
                     </button>
@@ -68,14 +76,18 @@ const Destinations = () => {
 
         {/* Modal */}
         {selectedDest && (
-          <div
-            className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 animate-fadeIn"
-          >
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 animate-fadeIn">
             <div className="bg-white rounded-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto relative p-6 animate-modalOpen">
-              
+
               <button
                 className="fixed top-6 right-6 z-50 w-12 h-12 flex items-center justify-center rounded-full bg-white/90 text-black text-3xl font-bold shadow-xl hover:bg-red-600 hover:text-white transition"
-                onClick={() => setSelectedDest(null)}
+                onClick={() => {
+                  setSelectedDest(null);
+
+                  if (openedFromHome) {
+                    navigate('/');
+                  }
+                }}
               >
                 &times;
               </button>
@@ -86,7 +98,8 @@ const Destinations = () => {
         )}
       </div>
     </>
-  );
+  );
 };
 
 export default Destinations;
+

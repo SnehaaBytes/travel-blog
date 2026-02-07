@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { destinationService } from '../../services/api';
 import Modal from '../common/Modal';
@@ -6,12 +6,14 @@ import Loading from '../common/Loading';
 import ErrorMessage from '../common/ErrorMessage';
 import { fixImagePath, truncateString } from '../../utils/helpers';
 import '../Destinations/Destinations.css'; // Import the same CSS file
+import { useNavigate } from 'react-router-dom';
+
 
 const Home = () => {
+  const navigate = useNavigate();
   const [destinations, setDestinations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [modalContent, setModalContent] = useState(null);
   const [activeTab, setActiveTab] = useState('popular');
   const [testimonials, setTestimonials] = useState([
     {
@@ -41,20 +43,6 @@ const Home = () => {
   ]);
 
   const testimonialsRef = useRef(null);
-
-  // Theme switcher state and logic
-  const [theme, setTheme] = useState(
-    () => localStorage.getItem('theme') || 'light'
-  );
-
-  useEffect(() => {
-    document.body.className = theme;
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
-  };
 
   const fetchDestinations = useCallback(async () => {
     try {
@@ -86,16 +74,15 @@ const Home = () => {
         { title: 'Jaipur', description: 'The Pink City with forts, palaces, and rich culture...', imgSrc: '/images/jaipur.jpg' },
         { title: 'Agra', description: 'Home of the Taj Mahal, a symbol of eternal love...', imgSrc: '/images/agra.jpg' },
         { title: 'Rishikesh', description: 'Spiritual and adventure hub on the Ganges River...', imgSrc: '/images/rishikesh.jpg' },
-        { title: 'Leh-Ladakh', description: 'High altitude desert with stunning landscapes...', imgSrc: '/images/leh_ladakh.jpg' },
+        { title: 'Leh-Ladakh', description: 'High altitude desert with stunning landscapes...', imgSrc: '/images/leh.jpg' },
         { title: 'Mysore', description: 'Known for palaces, gardens, and cultural festivals...', imgSrc: '/images/mysore.jpg' },
         { title: 'Darjeeling', description: 'Famous for tea gardens, mountains, and the toy train...', imgSrc: '/images/darjeeling.jpg' },
         { title: 'Udaipur', description: 'City of lakes, palaces, and romantic vibes...', imgSrc: '/images/udaipur.jpg' },
         { title: 'Shimla', description: 'Popular hill station with scenic views...', imgSrc: '/images/shimla.jpg' },
         { title: 'Ranthambore', description: 'Famous for national park and tiger safari...', imgSrc: '/images/ranthambore.jpg' },
         { title: 'Hampi', description: 'UNESCO World Heritage site with ruins and history...', imgSrc: '/images/hampi.jpg' },
-        { title: 'Andaman', description: 'Island paradise with beaches and water sports...', imgSrc: '/images/andaman.jpg' },
+        { title: 'Andaman', description: 'Island paradise with beaches and water sports...', imgSrc: '/images/AndamanIslands.jpg' },
         { title: 'Sikkim', description: 'Himalayan state with monasteries and nature...', imgSrc: '/images/sikkim.jpg' },
-        { title: 'Darjeeling Tea Gardens', description: 'Famous tea plantations and scenic views...', imgSrc: '/images/darjeeling_tea.jpg' },
         { title: 'Coorg', description: 'Coffee plantations and lush greenery...', imgSrc: '/images/coorg.jpg' },
       ];
 
@@ -112,19 +99,11 @@ const Home = () => {
     fetchDestinations();
   }, [fetchDestinations]);
 
-  const openModal = (title, description, imgSrc) => {
-    setModalContent({ title, description, imgSrc });
-  };
-
-  const closeModal = () => {
-    setModalContent(null);
-  };
-
   const scrollToTestimonials = () => {
     testimonialsRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const getFilteredDestinations = () => {
+  const filteredDestinations = useMemo(() => {
     if (activeTab === 'popular') {
       return destinations.slice(0, 4);
     } else if (activeTab === 'trending') {
@@ -133,7 +112,7 @@ const Home = () => {
       return [...destinations].reverse().slice(0, 4);
     }
     return destinations.slice(0, 4);
-  };
+  }, [activeTab, destinations]);
 
   const renderStars = (rating) => {
     return Array(5).fill(0).map((_, i) => (
@@ -146,10 +125,6 @@ const Home = () => {
 
   return (
     <>
-      <button onClick={toggleTheme} className="theme-toggle">
-        {theme === 'light' ? '🌙' : '☀️'}
-      </button>
-
       <div className="destinations-container">
         {/* Hero Section */}
         <header className="relative h-screen flex items-center justify-center overflow-hidden">
@@ -238,7 +213,7 @@ const Home = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                {getFilteredDestinations().map((destination, index) => (
+                {filteredDestinations.map((destination, index) => (
                   <div key={index} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer transform hover:-translate-y-2 transition-transform duration-300">
                     <div className="relative h-60 overflow-hidden">
                       <img
@@ -246,8 +221,9 @@ const Home = () => {
                         className="w-full h-full object-cover"
                         alt={destination.title}
                       />
-                      <div className="absolute top-4 right-4 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                        Popular
+                      {/* FIXED TAG: Now dynamically shows the active tab name */}
+                      <div className="absolute top-4 right-4 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full capitalize">
+                        {activeTab}
                       </div>
                     </div>
                     <div className="p-6">
@@ -255,9 +231,19 @@ const Home = () => {
                       <p className="text-gray-500 mb-4">{truncateString(destination.description, 100)}</p>
                       <div className="flex justify-between items-center">
                         <button
-                          onClick={() => openModal(destination.title, destination.description, fixImagePath(destination.imgSrc))}
-                          className="text-blue-600 font-bold hover:underline"
-                        >
+                        onClick={() =>
+    navigate('/destinations', {
+  state: {
+    destinationTitle: destination.title,
+    from: 'home'
+  }
+})
+
+  }
+  className="text-black-900 font-bold hover:underline"
+>
+    
+            
                           Explore
                         </button>
                         <i className="fas fa-arrow-right text-blue-600"></i>
@@ -270,13 +256,13 @@ const Home = () => {
 
             <div className="text-center mt-12">
               <Link to="/destinations" className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition-colors duration-300">
-                View All Destinations
+                View All Desinations
               </Link>
             </div>
           </div>
-        </section>
+        </section>t
 
-        {/* Testimonials Section */}
+        {/* Testimonials, Newsletter, and About Preview sections remain identical... */}
         <section ref={testimonialsRef} className="py-20 bg-gray-900 text-white">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
@@ -307,7 +293,6 @@ const Home = () => {
           </div>
         </section>
 
-        {/* Newsletter Section */}
         <section className="py-20 bg-gray-800 text-white">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center">
@@ -327,7 +312,6 @@ const Home = () => {
           </div>
         </section>
 
-        {/* About Preview Section */}
         <section className="py-20 bg-gray-900 text-white">
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row items-center">
@@ -350,13 +334,6 @@ const Home = () => {
         </section>
       </div>
 
-      <Modal
-        isOpen={!!modalContent}
-        onClose={closeModal}
-        title={modalContent?.title}
-        description={modalContent?.description}
-        imgSrc={modalContent?.imgSrc}
-      />
     </>
   );
 };
