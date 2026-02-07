@@ -33,7 +33,7 @@ const Register = () => {
   return (
     <div className="auth-container">
       <div className="auth-background">
-        <div className="auth-form-container">
+        <div className="auth-form-container animate-in">
           <h2>Register for Travel Blog</h2>
           
           <form id="registerForm" onSubmit={handleSubmit}>
