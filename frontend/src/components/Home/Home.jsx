@@ -231,19 +231,19 @@ const Home = () => {
                       <p className="text-gray-500 mb-4">{truncateString(destination.description, 100)}</p>
                       <div className="flex justify-between items-center">
                         <button
-                        onClick={() =>
-    navigate('/destinations', {
-  state: {
-    destinationTitle: destination.title,
-    from: 'home'
-  }
-})
+                          onClick={() =>
+                            navigate('/destinations', {
+                              state: {
+                                destinationTitle: destination.title,
+                                from: 'home'
+                              }
+                            })
 
-  }
-  className="text-black-900 font-bold hover:underline"
->
-    
-            
+                          }
+                          className="text-black-900 font-bold hover:underline"
+                        >
+
+
                           Explore
                         </button>
                         <i className="fas fa-arrow-right text-blue-600"></i>
@@ -260,7 +260,7 @@ const Home = () => {
               </Link>
             </div>
           </div>
-        </section>t
+        </section>
 
         {/* Testimonials, Newsletter, and About Preview sections remain identical... */}
         <section ref={testimonialsRef} className="py-20 bg-gray-900 text-white">
@@ -289,6 +289,11 @@ const Home = () => {
                   <p className="text-gray-300 italic">"{testimonial.text}"</p>
                 </div>
               ))}
+            </div>
+            <div className="text-center mt-12">
+              <Link to="/review" className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition-colors duration-300">
+                View All Reviews
+              </Link>
             </div>
           </div>
         </section>
