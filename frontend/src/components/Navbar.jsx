@@ -46,10 +46,9 @@ const Navbar = () => {
   return (
     <nav
       className={`fixed top-0 w-full z-50 transition-all duration-300
-        ${
-          isScrolled
-            ? "bg-zinc-900/70 backdrop-blur-xl border-b border-white/10"
-            : "bg-gradient-to-r from-zinc-900/90 via-black/80 to-zinc-900/90"
+        ${isScrolled
+          ? "bg-zinc-900/70 backdrop-blur-xl border-b border-white/10"
+          : "bg-gradient-to-r from-zinc-900/90 via-black/80 to-zinc-900/90"
         }`}
     >
       <div className="max-w-7xl mx-auto px-4">
@@ -65,16 +64,25 @@ const Navbar = () => {
 
             {/* Links */}
             <div className="flex gap-6 text-sm font-medium">
-              {["Home", "Destinations", "Review", "About"].map((item) => (
-                <Link
-                  key={item}
-                  to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
-                  className="text-white/70 hover:text-white transition"
-                >
-                  {item}
-                </Link>
-              ))}
-            </div>
+  {["Home", "Destinations", "Explore Map", "Review", "About"].map((item) => {
+    // Create proper route paths
+    const getRoutePath = (itemName) => {
+      if (itemName === "Home") return "/";
+      if (itemName === "Explore Map") return "/explore-map";
+      return `/${itemName.toLowerCase()}`;
+    };
+
+    return (
+      <Link
+        key={item}
+        to={getRoutePath(item)}
+        className="text-white/70 hover:text-white transition"
+      >
+        {item}
+      </Link>
+    );
+  })}
+</div>
 
             {/* Actions */}
             <div className="flex items-center gap-3">

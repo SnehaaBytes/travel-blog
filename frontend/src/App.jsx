@@ -9,6 +9,7 @@ import About from './components/About/About';
 import DestinationDetails from './components/Destinations/DestinationDetails';
 import './App.css';
 import Review from './components/Review/Review';
+import ExploreMap from './components/ExploreMap';
 
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/about" element={<About />} />
+            <Route path="/explore-map" element={<ExploreMap />} />
           </Routes>
         </div>
       </Router>
