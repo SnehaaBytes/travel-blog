@@ -50,7 +50,7 @@ const Destinations = () => {
             ) : (
               <section className="destination-list">
                 {filteredDestinations.map((dest) => (
-                  <div key={dest._id} className="destination">
+                  <div key={dest._id} className="destination flex flex-col justify-between">
                     <img
                       src={`/images/${dest.imgSrc}`}
                       alt={dest.title}

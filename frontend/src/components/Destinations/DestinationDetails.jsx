@@ -51,8 +51,7 @@ const DestinationDetails = ({ destination }) => {
       </p>
 
       {/* Details Grid */}
-      <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 fade-section transition-opacity duration-1000 ${visibleSections[2] ? 'opacity-100' : 'opacity-0'}`}>
-
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 fade-section transition-opacity duration-1000">
         {/* Location */}
         {destination.location && (
           <div className="p-4 bg-white rounded-xl shadow-md border border-gray-200">
@@ -97,7 +96,7 @@ const DestinationDetails = ({ destination }) => {
 
         {/* Budget */}
         {destination.budgetPlan && (
-          <div className="p-4 bg-white rounded-xl shadow-md border border-gray-200 col-span-full">
+          <div className="p-4 bg-white rounded-xl shadow-md border border-gray-200 md:col-span-2">
             <h3 className="font-semibold text-red-600 mb-2">💰 Budget Plan</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">

@@ -45,8 +45,16 @@ function ManageDestinations() {
       bestTimeToVisit,
       tips,
       mapLink,
-      activities: activities.split(",").map((a) => a.trim()),
-      itinerary: itinerary.split(",").map((i) => i.trim()),
+      activities: activities
+  .split(",")
+  .map((a) => a.trim())
+  .filter((a) => a !== ""),
+
+itinerary: itinerary
+  .split(",")
+  .map((i) => i.trim())
+  .filter((i) => i !== ""),
+    
       budgetPlan: {
         low: budgetLow,
         medium: budgetMedium,
