@@ -1,11 +1,18 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import ColorThief from 'color-thief-browser';
-import destinations from './destinationsData';
 import './Destinations.css';
 
 const AllDestinations = () => {
+  const [destinations, setDestinations] = useState([]);
   const [colors, setColors] = useState({});
   const imgRefs = useRef({});
+
+  useEffect(() => {
+    axios.get("http://localhost:5000/api/destinations")
+      .then(res => setDestinations(res.data))
+      .catch(err => console.error(err));
+  }, []);
 
   const handleImgLoad = (_id) => {
     const img = imgRefs.current[_id];
@@ -39,9 +46,9 @@ const AllDestinations = () => {
                 <h3>{dest.title}</h3>
                 <p><strong>Location:</strong> {dest.location}</p>
                 <p><strong>Best Time:</strong> {dest.bestTimeToVisit}</p>
-                <p><strong>Activities:</strong> {dest.activities.join(', ')}</p>
+                <p><strong>Activities:</strong> {dest.activities?.join(', ')}</p>
                 <p><strong>Tips:</strong> {dest.tips}</p>
-                <p><strong>Itinerary:</strong> {dest.itinerary.join(', ')}</p>
+                <p><strong>Itinerary:</strong> {dest.itinerary?.join(', ')}</p>
                 <a href={dest.mapLink} target="_blank" rel="noopener noreferrer">
                   View on Map
                 </a>
@@ -55,4 +62,3 @@ const AllDestinations = () => {
 };
 
 export default AllDestinations;
-

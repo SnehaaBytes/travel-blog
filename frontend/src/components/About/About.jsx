@@ -29,7 +29,7 @@ const About = () => {
         <div className="team-members">
           
           <div className="team-member">
-            <h3>Prithvi Singh Chauhan</h3>
+            <h3></h3>
             <p className="role">Photography Expert</p>
             <p>Our talented photographer who captures the essence of each destination through her lens.</p>
           </div>

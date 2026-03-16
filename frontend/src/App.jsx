@@ -10,25 +10,94 @@ import DestinationDetails from './components/Destinations/DestinationDetails';
 import './App.css';
 import Review from './components/Review/Review';
 import ExploreMap from './components/ExploreMap';
-
+import Dashboard from "./admin/pages/Dashboard";
+import ManageDestinations from "./admin/pages/ManageDestinations";
+import Bookings from "./admin/pages/Bookings";
+import AdminLayout from "./admin/AdminLayout";
 
 function App() {
   return (
-
     <AuthProvider>
       <Router>
         <div className="app">
-          <Navbar />
+
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/destinations" element={<Destinations />} />
-            <Route path="/destinations/:id" element={<DestinationDetails />} />
-            <Route path="/review" element={<Review />} />
+
+            {/* USER ROUTES */}
+
+            <Route
+              path="/"
+              element={
+                <>
+                  <Navbar />
+                  <Home />
+                </>
+              }
+            />
+
+            <Route
+              path="/destinations"
+              element={
+                <>
+                  <Navbar />
+                  <Destinations />
+                </>
+              }
+            />
+
+            <Route
+              path="/destinations/:id"
+              element={
+                <>
+                  <Navbar />
+                  <DestinationDetails />
+                </>
+              }
+            />
+
+            <Route
+              path="/review"
+              element={
+                <>
+                  <Navbar />
+                  <Review />
+                </>
+              }
+            />
+
+            <Route
+              path="/about"
+              element={
+                <>
+                  <Navbar />
+                  <About />
+                </>
+              }
+            />
+
+            <Route
+              path="/explore-map"
+              element={
+                <>
+                  <Navbar />
+                  <ExploreMap />
+                </>
+              }
+            />
+
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/explore-map" element={<ExploreMap />} />
+
+            {/* ADMIN ROUTES */}
+
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="destinations" element={<ManageDestinations />} />
+              <Route path="bookings" element={<Bookings />} />
+            </Route>
+
           </Routes>
+
         </div>
       </Router>
     </AuthProvider>
@@ -36,4 +105,3 @@ function App() {
 }
 
 export default App;
-

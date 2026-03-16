@@ -1,20 +1,27 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import destinationsData from "./destinationsData";
+import axios from "axios";
 import DestinationDetails from "./DestinationDetails";
 import DestinationSearch from "../Search/DestinationSearch";
 import "./Destinations.css";
 
 const Destinations = () => {
+  const [destinationsData, setDestinationsData] = useState([]);
   const [selectedDest, setSelectedDest] = useState(null);
   const [openedFromHome, setOpenedFromHome] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    axios.get("http://localhost:5000/api/destinations")
+      .then(res => setDestinationsData(res.data))
+      .catch(err => console.error(err));
+  }, []);
+
   // Auto-open modal when redirected from Home
   useEffect(() => {
-    if (location.state?.destinationTitle) {
+    if (location.state?.destinationTitle && destinationsData.length > 0) {
       const foundDest = destinationsData.find(
         (d) => d.title === location.state.destinationTitle
       );
@@ -22,11 +29,10 @@ const Destinations = () => {
       if (foundDest) {
         setSelectedDest(foundDest);
         setOpenedFromHome(location.state.from === "home");
-
         window.history.replaceState({}, document.title);
       }
     }
-  }, [location.state]);
+  }, [location.state, destinationsData]);
 
   return (
     <div className="destinations-container">
@@ -46,7 +52,7 @@ const Destinations = () => {
                 {filteredDestinations.map((dest) => (
                   <div key={dest._id} className="destination">
                     <img
-                      src={dest.imgSrc}
+                      src={`/images/${dest.imgSrc}`}
                       alt={dest.title}
                       className="destination-img"
                     />
