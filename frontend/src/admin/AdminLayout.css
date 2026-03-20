@@ -1,0 +1,175 @@
+/* --- Core Layout & Container --- */
+.admin-layout-wrapper {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc; /* Soft background for the main content pages */
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+.admin-page-content {
+  flex: 1;
+  padding: 30px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* --- Theme Variables --- */
+:root {
+  --admin-bg: #0f172a; 
+  --admin-surface: #1e293b;
+  --admin-text: #f8fafc;
+  --admin-text-muted: #94a3b8;
+  --admin-accent: #3b82f6; 
+}
+
+/* --- Desktop Sidebar Styling --- */
+.admin-sidebar {
+  width: 260px;
+  min-height: 100vh;
+  background-color: var(--admin-bg);
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  box-sizing: border-box;
+}
+
+.admin-sidebar-title {
+  color: var(--admin-text);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 40px 12px;
+  letter-spacing: 0.5px;
+
+  background: linear-gradient(to right, #60a5fa, #a855f7);
+
+  background-clip: text;              /* add this */
+  -webkit-background-clip: text;
+
+  color: transparent;                 /* add this */
+  -webkit-text-fill-color: transparent;
+}
+
+.admin-sidebar-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-sidebar-link {
+  display: block;
+  color: var(--admin-text-muted);
+  text-decoration: none;
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.25s ease;
+}
+
+.admin-sidebar-link:hover {
+  background-color: var(--admin-surface);
+  color: var(--admin-text);
+  transform: translateX(6px);
+}
+
+.admin-sidebar-link.active {
+  background-color: var(--admin-surface);
+  color: var(--admin-text);
+  font-weight: 600;
+  box-shadow: inset 4px 0 0 var(--admin-accent);
+}
+
+/* --- Mobile Elements (Hidden by default on Desktop) --- */
+.mobile-header {
+  display: none;
+  background-color: var(--admin-bg);
+  padding: 16px 20px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+}
+
+.mobile-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin: 0;
+
+  background: linear-gradient(to right, #60a5fa, #a855f7);
+
+  background-clip: text;              /* add this */
+  -webkit-background-clip: text;
+
+  color: transparent;                 /* add this */
+  -webkit-text-fill-color: transparent;
+}
+
+.mobile-toggle {
+  background: none;
+  border: none;
+  color: var(--admin-text);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-toggle svg {
+  width: 26px;
+  height: 26px;
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  z-index: 998;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* --- Mobile Responsive Rules --- */
+@media screen and (max-width: 768px) {
+  .admin-layout-wrapper {
+    flex-direction: column;
+    padding-top: 64px; /* Gives space for the newly visible mobile header */
+  }
+
+  .mobile-header {
+    display: flex; /* Make headers visible */
+  }
+
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transform: translateX(-100%); /* Hides sidebar smoothly off-screen */
+    box-shadow: 10px 0 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .admin-sidebar.open {
+    transform: translateX(0); /* Slides menu on screen */
+  }
+
+  .sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+  }
+}

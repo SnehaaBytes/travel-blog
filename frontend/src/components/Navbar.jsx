@@ -1,200 +1,206 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  FiSearch,
-  FiMenu,
-  FiX,
-  FiSun,
-  FiMoon,
-} from "react-icons/fi";
+import { FiSearch, FiMenu, FiX, FiSun, FiMoon } from "react-icons/fi";
 import { useAuth } from "../services/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import destinationsData from "./Destinations/destinationsData";
 
+// ✅ 1. Isolated Search Component: Completely prevents Desktop & Mobile from conflicting
+const SearchBar = ({ onSearchCallback, placeholder = "Search...", isMobile = false }) => {
+  const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const wrapperRef = useRef(null);
+  const navigate = useNavigate();
+
+  // Click outside listener specifically for this input instance
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setSuggestions([]);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Independent Debounce logic
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      if (!query.trim()) {
+        setSuggestions([]);
+        return;
+      }
+      const filtered = destinationsData.filter((dest) =>
+        dest.title.toLowerCase().includes(query.toLowerCase())
+      );
+      setSuggestions(filtered.slice(0, 5));
+    }, 300);
+
+    return () => clearTimeout(delay);
+  }, [query]);
+
+  const executeSearch = (searchTerm) => {
+    if (!searchTerm.trim()) return;
+    navigate(`/destinations?search=${encodeURIComponent(searchTerm)}`);
+    setQuery("");
+    setSuggestions([]);
+    if (onSearchCallback) onSearchCallback(); // Closes menu if on mobile
+  };
+console.log("Navbar rendered");
+  return (
+    <div className={`relative ${isMobile ? "w-full" : "w-64"}`} ref={wrapperRef}>
+      <button
+        onClick={() => executeSearch(query)}
+        className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
+      >
+        <FiSearch />
+      </button>
+
+      <input
+        type="text"
+        autoComplete="off"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && executeSearch(query)}
+        placeholder={placeholder}
+        className="w-full bg-white/5 text-white pl-10 pr-4 py-2.5 rounded-full border border-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+      />
+
+      {suggestions.length > 0 && (
+        <ul className="absolute top-full left-0 mt-2 w-full bg-zinc-800 rounded-xl z-50 overflow-hidden shadow-xl border border-white/5">
+          {suggestions.map((d) => (
+            <li
+              key={d._id}
+              // ✅ onMouseDown prevents click-out from destroying suggestions before routing
+              onMouseDown={() => executeSearch(d.title)}
+              className="px-4 py-3 cursor-pointer hover:bg-indigo-500/20 text-white transition-colors"
+            >
+              {d.title}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};
+
+// ✅ 2. Main Navbar Component
 const Navbar = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
 
   const location = useLocation();
-  const navigate = useNavigate();
 
-  // Scroll background effect
+  const navLinks = ["Home", "Destinations", "Explore Map", "Review", "About"];
+
+  // Scroll effect
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 40);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close mobile menu on route change
+  // Reset menu on route change
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location]);
 
-  const handleSearchSubmit = (e) => {
-    if (e.key === "Enter" && searchTerm.trim()) {
-      navigate(`/destinations?search=${encodeURIComponent(searchTerm)}`);
-      setSearchTerm("");
-      setSuggestions([]);
-    }
+  const getRoutePath = (item) => {
+    if (item === "Home") return "/";
+    if (item === "Explore Map") return "/explore-map";
+    return `/${item.toLowerCase()}`;
   };
 
   return (
     <nav
-      className={`fixed top-0 w-full z-50 transition-all duration-300
-        ${isScrolled
-          ? "bg-zinc-900/70 backdrop-blur-xl border-b border-white/10"
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+        isScrolled
+          ? "bg-zinc-900/80 backdrop-blur-xl border-b border-white/10 shadow-lg"
           : "bg-gradient-to-r from-zinc-900/90 via-black/80 to-zinc-900/90"
-        }`}
+      }`}
     >
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20">
+          
           {/* Logo */}
-          <Link to="/" className="text-xl font-semibold text-white">
-            Travel<span className="text-indigo-400 font-bold">Blogs</span>
+          <Link to="/" className="text-2xl font-bold text-white">
+            Travel<span className="text-indigo-500">Blogs</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
-
+          {/* Desktop */}
+          <div className="hidden lg:flex items-center flex-1 ml-10">
             {/* Links */}
-            <div className="flex gap-6 text-sm font-medium">
-  {["Home", "Destinations", "Explore Map", "Review", "About"].map((item) => {
-    // Create proper route paths
-    const getRoutePath = (itemName) => {
-      if (itemName === "Home") return "/";
-      if (itemName === "Explore Map") return "/explore-map";
-      return `/${itemName.toLowerCase()}`;
-    };
-
-    return (
-      <Link
-        key={item}
-        to={getRoutePath(item)}
-        className="text-white/70 hover:text-white transition"
-      >
-        {item}
-      </Link>
-    );
-  })}
-</div>
+            <div className="flex gap-8 text-sm">
+              {navLinks.map((item) => (
+                <Link
+                  key={item}
+                  to={getRoutePath(item)}
+                  className={`hover:text-indigo-400 transition-colors ${
+                    location.pathname === getRoutePath(item)
+                      ? "text-indigo-400"
+                      : "text-white/70"
+                  }`}
+                >
+                  {item}
+                </Link>
+              ))}
+            </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-3">
-
-              {/* Search with Suggestions */}
-              <div className="relative w-56">
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
-
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setSearchTerm(value);
-
-                    if (!value.trim()) {
-                      setSuggestions([]);
-                      return;
-                    }
-
-                    const filtered = destinationsData.filter((dest) =>
-                      dest.title
-                        .toLowerCase()
-                        .startsWith(value.toLowerCase())
-                    );
-
-                    setSuggestions(filtered.slice(0, 5));
-                  }}
-                  onKeyDown={handleSearchSubmit}
-                  placeholder="Search destinations"
-                  className="w-full bg-white/5 text-white text-sm
-                             pl-9 pr-4 py-2 rounded-full
-                             border border-white/10
-                             placeholder:text-white/40
-                             focus:outline-none"
-                />
-
-                {suggestions.length > 0 && (
-                  <ul className="absolute top-11 left-0 w-full bg-zinc-900
-                                 border border-white/10 rounded-xl
-                                 overflow-hidden z-50">
-                    {suggestions.map((dest) => (
-                      <li
-                        key={dest._id}
-                        className="px-4 py-2 text-sm text-white/80
-                                   hover:bg-indigo-500/20 cursor-pointer"
-                        onClick={() => {
-                          navigate(
-                            `/destinations?search=${encodeURIComponent(
-                              dest.title
-                            )}`
-                          );
-                          setSearchTerm("");
-                          setSuggestions([]);
-                        }}
-                      >
-                        {dest.title}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+            <div className="flex items-center gap-4 ml-auto">
+              
+              {/* Desktop Search */}
+              <SearchBar placeholder="Search destinations..." />
 
               {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
-                className="h-9 w-9 flex items-center justify-center
-                           rounded-full bg-white/5 border
-                           border-white/10 text-white/70"
+                className="h-10 w-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors"
+                aria-label="Toggle theme"
               >
-                {theme === "light" ? <FiMoon /> : <FiSun />}
+                {theme === "light" ? <FiMoon className="text-white" /> : <FiSun className="text-white" />}
               </button>
 
               {/* Auth */}
               {user ? (
-                <div className="flex items-center gap-3 min-w-[180px] justify-end">
-                  <span className="text-white/80 text-sm hidden sm:block">
-                    Welcome,{" "}
-                    <span className="font-semibold">
-                      {user?.username || user?.name || "User"}
-                    </span>
-                  </span>
-
-                  <button
-                    onClick={logout}
-                    className="px-4 py-2 text-sm font-medium
-                               rounded-full bg-indigo-500
-                               hover:bg-indigo-600 text-white transition"
-                  >
-                    Logout
-                  </button>
-                </div>
+                <button onClick={logout} className="text-white hover:text-indigo-400 transition-colors">Logout</button>
               ) : (
-                <Link
-                  to="/login"
-                  className="px-4 py-2 text-sm font-medium
-                             rounded-full bg-indigo-500
-                             hover:bg-indigo-600 text-white transition"
-                >
-                  Login
-                </Link>
+                <Link to="/login" className="text-white hover:text-indigo-400 transition-colors">Login</Link>
               )}
             </div>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden text-white"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <FiX size={26} /> : <FiMenu size={26} />}
-          </button>
+          {/* Mobile buttons */}
+          <div className="lg:hidden flex gap-3">
+            <button onClick={toggleTheme} className="h-10 w-10 flex items-center justify-center rounded-full bg-white/5 text-white">
+              {theme === "light" ? <FiMoon /> : <FiSun />}
+            </button>
+            <button 
+              onClick={() => setMobileMenuOpen((p) => !p)}
+              className="h-10 w-10 flex items-center justify-center rounded-full bg-white/5 text-white"
+            >
+              {mobileMenuOpen ? <FiX /> : <FiMenu />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile menu (CSS controlled) */}
+      <div
+        className={`lg:hidden transition-all overflow-hidden ${
+          mobileMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
+        <div className="p-4 border-t border-white/10 bg-zinc-900/95 backdrop-blur-xl">
+          {/* Mobile Search */}
+          <SearchBar 
+            isMobile={true} 
+            placeholder="Search..." 
+            onSearchCallback={() => setMobileMenuOpen(false)} 
+          />
         </div>
       </div>
     </nav>

@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { destinationService } from '../../services/api';
+import { Link, useNavigate } from 'react-router-dom';
+import { destinationService } from '../../services/api'; // Make sure this path is correct for you
 import Modal from '../common/Modal';
 import Loading from '../common/Loading';
 import ErrorMessage from '../common/ErrorMessage';
 import { fixImagePath, truncateString } from '../../utils/helpers';
-import '../Destinations/Destinations.css'; // Import the same CSS file
-import { useNavigate } from 'react-router-dom';
+import '../Destinations/Destinations.css'; 
 
 
 const Home = () => {
@@ -104,242 +103,269 @@ const Home = () => {
   };
 
   const filteredDestinations = useMemo(() => {
-    if (activeTab === 'popular') {
-      return destinations.slice(0, 4);
-    } else if (activeTab === 'trending') {
-      return [...destinations].sort(() => 0.5 - Math.random()).slice(0, 4);
-    } else if (activeTab === 'new') {
-      return [...destinations].reverse().slice(0, 4);
-    }
+    if (activeTab === 'popular') return destinations.slice(0, 4);
+    if (activeTab === 'trending') return [...destinations].sort(() => 0.5 - Math.random()).slice(0, 4);
+    if (activeTab === 'new') return [...destinations].reverse().slice(0, 4);
     return destinations.slice(0, 4);
   }, [activeTab, destinations]);
 
   const renderStars = (rating) => {
     return Array(5).fill(0).map((_, i) => (
-      <i
-        key={i}
-        className={`fas fa-star ${i < rating ? 'text-yellow-400' : 'text-gray-300'}`}
-      ></i>
+      <i key={i} className={`fas fa-star ${i < rating ? 'text-amber-500' : 'text-gray-300'}`}></i>
     ));
   };
 
   return (
-    <>
-      <div className="destinations-container">
-        {/* Hero Section */}
-        <header className="relative h-screen flex items-center justify-center overflow-hidden">
-          <video
-            autoPlay
-            muted
-            loop
-            className="absolute w-full h-full object-cover"
-          >
-            <source src="https://videos.pexels.com/video-files/2146396/2146396-uhd_2560_1440_30fps.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-          <div className="absolute inset-0 bg-black bg-opacity-50"></div>
-          <div className="relative z-10 text-center px-4 max-w-4xl">
-            <h1 className="text-3xl md:text-3xl font-bold text-white mb-6 tracking-wider">
-              STOP PLANNING, START TRAVELING...
-            </h1>
-            <p className="text-lg md:text-lg font-bold text-white mb-10">
-              Let's Explore the Vibrancy of INDIA
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/destinations" className="bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 px-8 rounded-full transition-colors duration-300 text-lg">
-                Explore Destinations
-              </Link>
-              <button
-                onClick={scrollToTestimonials}
-                className="bg-transparent hover:bg-white/20 text-white font-bold py-3 px-8 rounded-full border-2 border-white transition-colors duration-300 text-lg"
-              >
-                Read Testimonials
-              </button>
-            </div>
-          </div>
-          <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
-            <button
-              onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
-              className="text-white text-4xl focus:outline-none"
-              aria-label="Scroll down"
+    <div className="destinations-container font-sans bg-gray-50">
+      
+      {/* --- HERO SECTION --- */}
+      <header className="relative h-screen flex items-center justify-center overflow-hidden">
+        <video autoPlay muted loop className="absolute inset-0 w-full h-full object-cover">
+          <source src="https://videos.pexels.com/video-files/2146396/2146396-uhd_2560_1440_30fps.mp4" type="video/mp4" />
+        </video>
+        
+               {/* Soft elegant gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80"></div>
+        
+        <div className="relative z-10 w-full max-w-5xl px-6 flex flex-col items-center text-center mt-10">
+          <span className="text-blue-400 font-semibold tracking-widest uppercase mb-4 text-sm md:text-base animate-fade-in-up">
+            Stop Planning, Start Traveling
+          </span>
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6 leading-tight drop-shadow-xl">
+            Explore the Vibrancy <br/> of <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-white to-green-400">INDIA</span>
+          </h1>
+          <p className="text-lg md:text-xl text-gray-200 mb-10 max-w-2xl font-light drop-shadow-md">
+            Uncover ancient mysteries, breathtaking landscapes, and unforgettable cultural experiences.
+          </p>
+          
+          {/* Button Wrapper fixed for precise alignment */}
+          <div className="flex flex-col sm:flex-row gap-5 items-center justify-center w-full">
+            
+            {/* Primary Action Button */}
+            <Link 
+              to="/destinations" 
+              className="bg-blue-600 hover:bg-blue-100 text-white font-semibold py-4 px-10 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-[0_0_20px_rgba(37,99,235,0.4)] text-lg flex items-center justify-center w-full sm:w-auto"
             >
-              <i className="fas fa-chevron-down"></i>
+              Explore Destinations
+            </Link>
+
+            {/* Premium 'Read Testimonials' Button */}
+            <button
+              onClick={scrollToTestimonials}
+              className="relative overflow-hidden group bg-transparent hover:bg-white text-white hover:text-blue-900 border-2 border-white font-bold py-4 px-10 rounded-full transition-all duration-300 shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-xl text-lg flex items-center justify-center gap-3 w-full sm:w-auto"
+            >
+              <span className="relative z-10">Read Testimonials</span>
+              <i className="fas fa-arrow-down text-sm relative z-10 animate-bounce group-hover:animate-none"></i>
             </button>
+
           </div>
-        </header>
+        </div>
 
-        {/* Destinations Section */}
-        <section className="py-20 bg-gray-100 text-gray-900">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Discover Amazing Places</h2>
-              <p className="text-gray-500 max-w-2xl mx-auto">Explore the most beautiful and culturally rich destinations across India</p>
-            </div>
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 cursor-pointer" onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}>
+          <div className="w-8 h-12 border-2 border-white/50 rounded-full flex justify-center p-2 opacity-80 hover:opacity-100 transition-opacity">
+            <div className="w-1 h-3 bg-white rounded-full animate-bounce"></div>
+          </div>
+        </div>
+      </header>
 
-            {/* Tabs */}
-            <div className="flex justify-center mb-12">
-              <div className="inline-flex rounded-md shadow-sm" role="group">
+      {/* --- DESTINATIONS SECTION --- */}
+      <section className="py-24 bg-gray-50 text-gray-900">
+        <div className="container mx-auto px-6 lg:px-12">
+          
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-5 text-gray-900 tracking-tight">Discover Amazing Places</h2>
+            <div className="w-24 h-1 bg-blue-600 mx-auto rounded-full mb-6"></div>
+            <p className="text-gray-500 text-lg max-w-2xl mx-auto">Explore the most beautiful, culturally rich, and breathtaking destinations hand-picked just for you.</p>
+          </div>
+
+
+          {/* Premium Pill Tabs */}
+          <div className="flex justify-center mb-16">
+            <div className="inline-flex bg-gray-200/80 p-1.5 rounded-full shadow-inner" role="group">
+              {['popular', 'trending', 'new'].map((tab) => (
                 <button
+                  key={tab}
                   type="button"
-                  className={`px-6 py-3 text-sm font-medium rounded-l-lg ${activeTab === 'popular' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                  onClick={() => setActiveTab('popular')}
+                  className={`px-8 py-3 text-sm font-bold rounded-full capitalize transition-all duration-300 ${activeTab === tab ? 'bg-white text-blue-700 shadow-md transform scale-105' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300/50'}`}
+                  onClick={() => setActiveTab(tab)}
                 >
-                  Popular
+                  {tab}
                 </button>
-                <button
-                  type="button"
-                  className={`px-6 py-3 text-sm font-medium ${activeTab === 'trending' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                  onClick={() => setActiveTab('trending')}
-                >
-                  Trending
-                </button>
-                <button
-                  type="button"
-                  className={`px-6 py-3 text-sm font-medium rounded-r-lg ${activeTab === 'new' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                  onClick={() => setActiveTab('new')}
-                >
-                  New
-                </button>
-              </div>
-            </div>
-
-            {loading ? (
-              <div className="flex justify-center">
-                <Loading message="Loading destinations..." />
-              </div>
-            ) : error ? (
-              <div className="max-w-2xl mx-auto">
-                <ErrorMessage message={error} onRetry={fetchDestinations} />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                {filteredDestinations.map((destination, index) => (
-                  <div key={index} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer transform hover:-translate-y-2 transition-transform duration-300">
-                    <div className="relative h-60 overflow-hidden">
-                      <img
-                        src={fixImagePath(destination.imgSrc)}
-                        className="w-full h-full object-cover"
-                        alt={destination.title}
-                      />
-                      {/* FIXED TAG: Now dynamically shows the active tab name */}
-                      <div className="absolute top-4 right-4 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full capitalize">
-                        {activeTab}
-                      </div>
-                    </div>
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold mb-2">{destination.title}</h3>
-                      <p className="text-gray-500 mb-4">{truncateString(destination.description, 100)}</p>
-                      <div className="flex justify-between items-center">
-                        <button
-                          onClick={() =>
-                            navigate('/destinations', {
-                              state: {
-                                destinationTitle: destination.title,
-                                from: 'home'
-                              }
-                            })
-
-                          }
-                          className="text-black-900 font-bold hover:underline"
-                        >
-
-
-                          Explore
-                        </button>
-                        <i className="fas fa-arrow-right text-blue-600"></i>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="text-center mt-12">
-              <Link to="/destinations" className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition-colors duration-300">
-                View All Desinations
-              </Link>
+              ))}
             </div>
           </div>
-        </section>
 
-        {/* Testimonials, Newsletter, and About Preview sections remain identical... */}
-        <section ref={testimonialsRef} className="py-20 bg-gray-900 text-white">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">What Our Travelers Say</h2>
-              <p className="text-gray-300 max-w-2xl mx-auto">Read about the experiences of travelers who have explored India with us</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {testimonials.map((testimonial) => (
-                <div key={testimonial.id} className="bg-gray-800 rounded-lg p-8 shadow-md hover:shadow-lg transition-shadow duration-300">
-                  <div className="flex items-center mb-4">
-                    <img
-                      src={testimonial.image}
-                      alt={testimonial.name}
-                      className="w-16 h-16 rounded-full object-cover mr-4"
-                    />
-                    <div>
-                      <h3 className="font-bold text-lg">{testimonial.name}</h3>
-                      <p className="text-gray-400">{testimonial.location}</p>
+          {loading ? (
+            <div className="flex justify-center py-12"><Loading message="Loading destinations..." /></div>
+          ) : error ? (
+            <div className="max-w-2xl mx-auto"><ErrorMessage message={error} onRetry={fetchDestinations} /></div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {filteredDestinations.map((destination, index) => (
+                <div key={index} className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl border border-gray-100 transition-all duration-500 flex flex-col h-full transform hover:-translate-y-2">
+                  
+                  {/* Image Container with Gradient Overlay */}
+                  <div className="relative h-64 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10"></div>
+                    <img src={fixImagePath(destination.imgSrc)} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={destination.title} />
+                    
+                    {/* Floating Badge */}
+                    <div className="absolute top-4 left-4 z-20 bg-white/90 backdrop-blur text-blue-700 text-xs font-extrabold px-3 py-1.5 rounded-full capitalize shadow-sm">
+                      {activeTab} 
                     </div>
+
+                    {/* Title inside image for modern look */}
+                    <h3 className="absolute bottom-4 left-5 z-20 text-2xl font-bold text-white tracking-wide">{destination.title}</h3>
                   </div>
-                  <div className="mb-4">
-                    {renderStars(testimonial.rating)}
+
+                 {/* Card Body */}
+<div className="p-6 flex flex-col flex-grow bg-white">
+  <p className="text-gray-500 text-sm mb-6 leading-relaxed flex-grow">
+    {truncateString(destination.description, 110)}
+  </p>
+  
+  <div className="pt-5 border-t border-gray-100 flex justify-between items-center mt-auto">
+    
+    {/* --- UPDATED EXPLORE BUTTON --- */}
+    <button 
+      onClick={() => navigate('/destinations', { state: { destinationTitle: destination.title, from: 'home' } })} 
+      className="w-full bg-blue-50 text-blue-600 font-bold py-3 px-4 rounded-xl hover:bg-blue-800 hover:text-white transition-all duration-300 flex items-center justify-center gap-2 group/btn shadow-sm"
+    >
+      Explore Now 
+      <i className="fas fa-arrow-right text-sm transform group-hover/btn:translate-x-1 transition-transform duration-300"></i>
+    </button>
+
+  </div>
+
+
                   </div>
-                  <p className="text-gray-300 italic">"{testimonial.text}"</p>
                 </div>
               ))}
             </div>
-            <div className="text-center mt-12">
-              <Link to="/review" className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition-colors duration-300">
-                View All Reviews
+          )}
+
+          <div className="text-center mt-20">
+            <Link to="/destinations" className="inline-flex items-center gap-3 bg-gray-900 hover:bg-black text-white font-bold py-4 px-10 rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
+              View All Destinations <i className="fas fa-compass"></i>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* --- TESTIMONIALS SECTION --- */}
+      <section ref={testimonialsRef} className="py-24 bg-gray-900 text-white relative overflow-hidden">
+        {/* Decorative background circle */}
+        <div className="absolute top-[-10%] right-[-5%] w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+        <div className="absolute bottom-[-10%] left-[-5%] w-96 h-96 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+
+        <div className="container mx-auto px-6 lg:px-12 relative z-10">
+          <div className="text-center mb-20">
+            <span className="text-blue-400 font-bold tracking-wider uppercase text-sm mb-3 block">Real Experiences</span>
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-6">What Our Travelers Say</h2>
+            <p className="text-gray-400 max-w-2xl mx-auto text-lg">Don't just take our word for it. Read the experiences of adventurers who have explored India with us.</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial) => (
+              <div key={testimonial.id} className="bg-gray-800/60 backdrop-blur-lg border border-gray-700/50 rounded-2xl p-8 shadow-xl hover:-translate-y-2 transition-transform duration-300 relative">
+                {/* Huge Quote Icon */}
+                <i className="fas fa-quote-right absolute top-6 right-6 text-4xl text-gray-700/30"></i>
+                
+                <div className="mb-6">{renderStars(testimonial.rating)}</div>
+                <p className="text-gray-300 text-lg leading-relaxed italic mb-8">"{testimonial.text}"</p>
+                
+                <div className="flex items-center pt-6 border-t border-gray-700/50 mt-auto">
+                  <img src={testimonial.image} alt={testimonial.name} className="w-14 h-14 rounded-full object-cover mr-4 border-2 border-blue-500" />
+                  <div>
+                    <h3 className="font-bold text-white">{testimonial.name}</h3>
+                    <p className="text-gray-400 text-sm font-medium">{testimonial.location}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-16">
+            <Link to="/review" className="inline-flex items-center gap-2 bg-transparent hover:bg-white/10 text-white border-2 border-white/20 font-bold py-3 px-8 rounded-full transition-all duration-300">
+              View All Reviews
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* --- NEWSLETTER SECTION --- */}
+      <section className="py-24 bg-gradient-to-br from-blue-700 via-blue-800 to-gray-900 text-white">
+        <div className="container mx-auto px-6 lg:px-12">
+          <div className="max-w-4xl mx-auto bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-10 md:p-16 text-center shadow-2xl">
+            <i className="fas fa-paper-plane text-5xl mb-6 text-blue-300 animate-pulse"></i>
+            <h2 className="text-3xl md:text-5xl font-extrabold mb-6">Join Our Travel Club</h2>
+            <p className="text-blue-100 text-lg md:text-xl mb-10 max-w-2xl mx-auto">Get exclusive destination guides, hidden gem recommendations, and premium travel offers delivered straight to your inbox.</p>
+            
+            <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-2xl mx-auto">
+              <input
+                type="email"
+                placeholder="Enter your email address..."
+                className="px-6 py-4 rounded-full text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-400/50 flex-grow font-medium w-full"
+              />
+              <button className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-10 rounded-full transition-colors duration-300 shadow-lg whitespace-nowrap">
+                Subscribe Now
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* --- ABOUT US SECTION --- */}
+      <section className="py-28 bg-white text-gray-900">
+        <div className="container mx-auto px-6 lg:px-12">
+          <div className="flex flex-col lg:flex-row items-center gap-16">
+            
+            {/* Left Image Side directly overlapping for a modern look */}
+            <div className="lg:w-1/2 relative">
+              <div className="absolute -inset-4 bg-blue-100 rounded-3xl transform rotate-3"></div>
+              <img
+                src="https://images.unsplash.com/photo-1501555088652-021faa106b9b?q=80&w=2073&auto=format&fit=crop"
+                alt="Travel Team"
+                className="relative rounded-2xl shadow-2xl w-full h-[500px] object-cover"
+              />
+              {/* Floating Stat Box */}
+              <div className="absolute -bottom-8 -right-8 bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
+                <div className="flex items-center gap-4">
+                  <div className="bg-blue-100 p-3 rounded-full text-blue-600"><i className="fas fa-suitcase-rolling text-2xl"></i></div>
+                  <div>
+                    <h4 className="font-extrabold text-2xl text-gray-900">50k+</h4>
+                    <p className="text-sm font-semibold text-gray-500 uppercase">Happy Travelers</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Content */}
+            <div className="lg:w-1/2 pt-12 lg:pt-0">
+              <span className="text-blue-600 font-bold tracking-widest uppercase text-sm mb-4 block">Our Story</span>
+              <h2 className="text-4xl md:text-5xl font-extrabold mb-8 text-gray-900 leading-tight">We Are Passionate About <span className="text-blue-600">Travel</span></h2>
+              <p className="text-gray-600 mb-8 text-lg leading-relaxed">
+                We are a dedicated team of travel experts devoted to uncovering the absolute best experiences across the diverse landscapes of India. From the snow-capped Himalayan peaks to the sun-kissed beaches of the south, we craft journeys that are truly unforgettable.
+              </p>
+              
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10 text-gray-700 font-medium">
+                <li><i className="fas fa-check-circle text-blue-600 mr-2"></i> Handpicked Destinations</li>
+                <li><i className="fas fa-check-circle text-blue-600 mr-2"></i> 24/7 Premium Support</li>
+                <li><i className="fas fa-check-circle text-blue-600 mr-2"></i> Lowest Price Guarantee</li>
+                <li><i className="fas fa-check-circle text-blue-600 mr-2"></i> Verified Local Guides</li>
+              </ul>
+
+              <Link to="/about" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-full transition-colors duration-300 shadow-lg">
+                Learn More About Us <i className="fas fa-arrow-right"></i>
               </Link>
             </div>
+            
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="py-20 bg-gray-800 text-white">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Subscribe to Our Newsletter</h2>
-              <p className="mb-8">Get the latest travel tips, destination guides, and exclusive offers delivered to your inbox.</p>
-              <div className="flex flex-col md:flex-row gap-4 justify-center">
-                <input
-                  type="email"
-                  placeholder="Your email address"
-                  className="px-4 py-5 rounded-full text-gray-700 focus:outline-none flex-grow max-w-md"
-                />
-                <button className="bg-white text-blue-600 hover:bg-gray-100 font-bold py-4 px-5 rounded-full transition-colors duration-400">
-                  Subscribe
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="py-20 bg-gray-900 text-white">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col md:flex-row items-center">
-              <div className="md:w-1/2 mb-10 md:mb-0">
-                <h2 className="text-3xl md:text-4xl font-bold mb-6">About Us</h2>
-                <p className="text-gray-300 mb-8 text-lg">We are a passionate team of travel enthusiasts dedicated to bringing you the best travel experiences and insights from across India. Our mission is to inspire and guide travelers to discover the incredible diversity and beauty of this amazing country.</p>
-                <Link to="/about" className="inline-block bg-white text-gray-900 hover:bg-gray-100 font-bold py-3 px-8 rounded-full transition-colors duration-300">
-                  Learn More About Us
-                </Link>
-              </div>
-              <div className="md:w-1/2 md:pl-10">
-                <img
-                  src="https://images.unsplash.com/photo-1501555088652-021faa106b9b?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                  alt="Travel Team"
-                  className="rounded-lg shadow-2xl"
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-
-    </>
+    </div>
   );
 };
 
