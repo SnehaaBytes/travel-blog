@@ -1,7 +1,13 @@
 import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
 import { AuthProvider } from "./services/AuthContext";
 
+// 👇 IMPORT THE THEME PROVIDER TO WRAP THE ENTIRE APP
+import { ThemeProvider } from "./context/ThemeContext";
+
 import Navbar from "./components/Navbar";
+
+// 👇 IMPORT THE NEW ADMIN ROUTE 
+import AdminRoute from "./components/AdminRoute";
 
 import Home from "./components/Home/Home";
 import Destinations from "./components/Destinations/Destinations";
@@ -17,6 +23,9 @@ import Dashboard from "./admin/pages/Dashboard";
 import ManageDestinations from "./admin/pages/ManageDestinations";
 import Bookings from "./admin/pages/Bookings";
 import AdminLayout from "./admin/AdminLayout";
+import BookingPage from "./pages/BookingPage";
+import PaymentPage from "./pages/PaymentPage";
+import Success from "./pages/Success";
 
 import "./App.css";
 
@@ -32,36 +41,50 @@ const MainLayout = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="app">
-          <Routes>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          {/* 👇 ADDED TAILWIND GLOBAL CLASSES FOR DARK MODE BACKGROUND & TEXT */}
+          <div className="app min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-slate-50 transition-colors duration-300">
+            <Routes>
 
-            {/* USER ROUTES */}
-            <Route element={<MainLayout />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/destinations" element={<Destinations />} />
-              <Route path="/destinations/:id" element={<DestinationDetails />} />
-              <Route path="/review" element={<Review />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/explore-map" element={<ExploreMap />} />
-            </Route>
+              {/* USER ROUTES (Public) */}
+              <Route element={<MainLayout />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/destinations" element={<Destinations />} />
+                <Route path="/destinations/:id" element={<DestinationDetails />} />
+                <Route path="/review" element={<Review />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/explore-map" element={<ExploreMap />} />
+                <Route path="/book/:id" element={<BookingPage />} />
+                <Route path="/payment" element={<PaymentPage />} />
+                <Route path="/success" element={<Success />} />
+              </Route>
 
-            {/* AUTH */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+              {/* AUTH ROUTES */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
-            {/* ADMIN */}
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="destinations" element={<ManageDestinations />} />
-              <Route path="bookings" element={<Bookings />} />
-            </Route>
+              {/* 🛡️ PROTECTED ADMIN ROUTES */}
+              <Route 
+                path="/admin" 
+                element={
+                  // We wrap the entire Layout layer, protecting everything inside
+                  <AdminRoute>
+                    <AdminLayout />
+                  </AdminRoute>
+                }
+              >
+                <Route index element={<Dashboard />} />
+                <Route path="destinations" element={<ManageDestinations />} />
+                <Route path="bookings" element={<Bookings />} />
+              </Route>
 
-          </Routes>
-        </div>
-      </Router>
-    </AuthProvider>
+            </Routes>
+          </div>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

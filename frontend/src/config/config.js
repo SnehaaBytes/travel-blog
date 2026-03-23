@@ -1,14 +1,7 @@
-/**
- * Application configuration
- *
- * This file centralizes all configuration variables for the application.
- * In a production environment, these would typically come from environment variables.
- */
-
 const config = {
   // API configuration
   api: {
-    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:5000',
+    baseUrl:  'http://localhost:5000',
     timeout: 10000, // 10 seconds
   },
 

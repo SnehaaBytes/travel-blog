@@ -164,17 +164,87 @@ app.delete('/api/destinations/:id', async (req, res) => {
   }
 });
 
+// ========================
+// BOOKINGS ROUTES
+// ========================
+
+// Booking Schema
+const bookingSchema = new mongoose.Schema({
+  name: String,
+  destination: String,
+  date: String,
+  people: Number,
+  status: {
+    type: String,
+    default: "pending"
+  }
+});
+
+const Booking = mongoose.model("Booking", bookingSchema);
+
+// GET all bookings
+app.get('/api/bookings', async (req, res) => {
+  try {
+    const bookings = await Booking.find();
+    res.json(bookings);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch bookings' });
+  }
+});
+
+// CREATE booking
+app.post('/api/bookings', async (req, res) => {
+  try {
+    const booking = new Booking(req.body);
+    const saved = await booking.save();
+    res.status(201).json(saved);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// UPDATE booking (status etc.)
+app.put('/api/bookings/:id', async (req, res) => {
+  try {
+    const updated = await Booking.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    res.json(updated);
+  } catch {
+    res.status(500).json({ error: 'Failed to update booking' });
+  }
+});
+
+// DELETE booking
+app.delete('/api/bookings/:id', async (req, res) => {
+  try {
+    await Booking.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Booking deleted' });
+  } catch {
+    res.status(500).json({ error: 'Failed to delete booking' });
+  }
+});
 
 // ========================
 // AUTH ROUTES
 // ========================
+
+// REGISTER
 app.post('/api/register', async (req, res) => {
   try {
 
     const { username, password } = req.body;
 
+    if (!username || !password) {
+      return res.status(400).json({ message: 'Missing fields' });
+    }
+
     const exists = await User.findOne({ username });
-    if (exists) return res.status(400).json({ message: 'User already exists' });
+    if (exists) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -192,18 +262,43 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+
+// LOGIN
+
 app.post('/api/login', async (req, res) => {
   try {
+    // 👉 We now expect `loginType` from the frontend
+    const { username, password, loginType } = req.body;
 
-    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ message: 'Missing fields' });
+    }
 
     const user = await User.findOne({ username });
-    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: 'Invalid password' });
 
-    res.json({ message: 'Login successful', username });
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // 👉 ADD ROLE VERIFICATION
+    if (loginType === 'admin' && !user.isAdmin) {
+      return res.status(403).json({ 
+        message: 'Access denied. You are not an administrator.' 
+      });
+    }
+
+    // Pass the role info back to the frontend
+    res.json({ 
+      message: 'Login successful', 
+      username: user.username,
+      isAdmin: user.isAdmin 
+    });
 
   } catch (err) {
     res.status(500).json({ message: err.message });

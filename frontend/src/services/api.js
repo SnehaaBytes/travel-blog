@@ -1,9 +1,6 @@
 import axios from 'axios';
 import config from '../config/config';
 
-/**
- * Create axios instance with configuration
- */
 const api = axios.create({
   baseURL: config.api.baseUrl,
   timeout: config.api.timeout,
@@ -12,22 +9,7 @@ const api = axios.create({
   },
 });
 
-/**
- * Request interceptor for API calls
- */
-api.interceptors.request.use(
-  (config) => {
-    // You could add auth tokens here in the future
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-/**
- * Response interceptor for API calls
- */
+// Response interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -37,55 +19,52 @@ api.interceptors.response.use(
   }
 );
 
-// API services
+// ================= AUTH =================
 export const authService = {
-  login: async (credentials) => {
+  // Update credentials to accept loginType
+  login: async (username, password, loginType) => {
     try {
-      const response = await api.post('/api/login', credentials);
-      return response.data;
+      const response = await api.post('/api/login', {
+        username,
+        password,
+        loginType // 👉 Send 'user' or 'admin' to the backend
+      });
+      return { success: true, data: response.data };
     } catch (error) {
-      throw error.response?.data || { message: 'Login failed' };
+       return { 
+         success: false, 
+         message: error.response?.data?.message || 'Login failed' 
+       };
     }
-  },
+  }, // ✅ Changed from }; to },
 
   register: async (userData) => {
-    try {
-      const response = await api.post('/api/register', userData);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || { message: 'Registration failed' };
-    }
+    const response = await api.post('/api/register', {
+      username: userData.username,
+      password: userData.password
+    });
+    return response.data;
   }
-};
+}; // ✅ authService properly closes here
 
+// ================= DESTINATIONS =================
 export const destinationService = {
   getDestinations: async () => {
-    try {
-      const response = await api.get('/destination');
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || { message: 'Failed to fetch destinations' };
-    }
+    const response = await api.get('/api/destinations'); 
+    return response.data;
   }
 };
 
+// ================= CHAT =================
 export const chatService = {
   getMessages: async () => {
-    try {
-      const response = await api.get('/api/messages');
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || { message: 'Failed to fetch messages' };
-    }
+    const response = await api.get('/api/messages');
+    return response.data;
   },
 
   sendMessage: async (messageData) => {
-    try {
-      const response = await api.post('/api/messages', messageData);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || { message: 'Failed to send message' };
-    }
+    const response = await api.post('/api/messages', messageData);
+    return response.data;
   }
 };
 

@@ -1,43 +1,62 @@
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800;900&family=Inter:wght@400;500;600&display=swap');
+
 /* =========================================================
-   Global Variables and Base Styles
-   - Use CSS variables for easy theme changes (light/dark)
+   1. Design Tokens & Global Variables
    ========================================================= */
 
 :root {
-  /* Colors */
-  --bg-color-light: #f7f9fc;
-  --bg-color-dark: #121212;
+  /* Backgrounds */
+  --bg-color-light: #f4f7f9;
+  --bg-color-dark: #0b0f19;
+  
+  /* Glass & Card Surfaces */
   --card-bg-light: #ffffff;
-  --card-bg-dark: #1e1e1e;
-  --text-color-light: #111;
-  --text-color-dark: #f5f5f5;
-  --text-secondary-light: #555;
-  --text-secondary-dark: #b0b0b0;
-  --shadow-light: rgba(0, 0, 0, 0.08);
-  --shadow-hover-light: rgba(0, 0, 0, 0.15);
-  --shadow-dark: rgba(0, 0, 0, 0.4);
-  --shadow-hover-dark: rgba(0, 0, 0, 0.6);
-  --primary-color-start: #4facfe;
-  --primary-color-end: #00f2fe;
+  --card-bg-dark: rgba(20, 27, 45, 0.65);
+  --card-border-light: rgba(255, 255, 255, 0.8);
+  --card-border-dark: rgba(255, 255, 255, 0.05);
 
-  /* Font */
-  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  /* Typography Colors */
+  --text-color-light: #0f172a;
+  --text-color-dark: #f8fafc;
+  --text-secondary-light: #64748b;
+  --text-secondary-dark: #94a3b8;
+  
+  /* High-End Shadows */
+  --shadow-sm-light: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+  --shadow-lg-light: 0 25px 50px -12px rgba(15, 23, 42, 0.15);
+  --shadow-sm-dark: 0 4px 20px -5px rgba(0, 0, 0, 0.5);
+  --shadow-lg-dark: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+  
+  /* Vibrant Accents */
+  --primary-color-start: #2563eb; 
+  --primary-color-end: #8b5cf6;
+  --accent-glow: rgba(139, 92, 246, 0.4);
+
+  /* Fonts */
+  --font-heading: 'Outfit', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+
+  /* Easing */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Base styles for light mode */
+/* Base Document Styles */
 body {
-  font-family: var(--font-family);
+  font-family: var(--font-body);
   background-color: var(--bg-color-light);
   color: var(--text-color-light);
   margin: 0;
   padding: 0;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
+  transition: background-color 0.5s var(--ease-smooth), color 0.5s var(--ease-smooth);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* =========================================================
-   Dark Mode Styles
-   - Applies when the <body> has the 'dark' class
+   2. Dark Mode Engine
    ========================================================= */
 
 body.dark {
@@ -45,602 +64,370 @@ body.dark {
   color: var(--text-color-dark);
 }
 
-body.dark .destination {
+/* Applying Dark Mode Tokens */
+body.dark .destination,
+body.dark .destinations-header,
+body.dark .testimonial-card {
   background: var(--card-bg-dark);
-  box-shadow: 0 8px 20px var(--shadow-dark);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border-dark);
+  box-shadow: var(--shadow-sm-dark);
 }
 
-body.dark .destination:hover {
-  box-shadow: 0 25px 50px var(--shadow-hover-dark);
-}
-
-body.dark .destination-title {
+body.dark .destination-title,
+body.dark .destinations-header h1,
+body.dark .section-title {
   color: var(--text-color-dark);
 }
 
-body.dark .destination-info p {
+body.dark .destination-info p,
+body.dark .no-data,
+body.dark .section-subtitle {
   color: var(--text-secondary-dark);
 }
 
-body.dark .destination-activities span {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-secondary-dark);
-}
-
-body.dark .destination-activities span:hover {
-  background: rgba(255, 255, 255, 0.2);
+body.dark .theme-toggle {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-color-dark);
-}
-
-body.dark .no-data {
-  color: var(--text-secondary-dark);
 }
 
 /* =========================================================
-   Page Layout & Container
+   3. Main Layout & Header (Fluid & Responsive)
    ========================================================= */
 
 .destinations-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding-top: 80px;
+  padding-top: clamp(80px, 10vw, 120px);
 }
+
 .destinations-header {
-  padding: 40px 60px;
-  margin: 40px 60px;
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  padding: clamp(30px, 5vw, 60px);
+  margin: 0 auto 40px auto;
+  width: 90%;
+  max-width: 1200px;
+  background: var(--card-bg-light);
+  border-radius: 32px;
+  box-shadow: var(--shadow-sm-light);
+  border: 1px solid var(--card-border-light);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.4s var(--ease-spring), box-shadow 0.4s var(--ease-smooth);
 }
+
+.destinations-header:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg-light);
+}
+
 .destinations-header h1 {
+  font-family: var(--font-heading);
+  /* Fluid typography: scales dynamically between 2.5rem and 5rem */
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
   margin: 0;
-  font-size: 3rem;
-  font-weight: 900;
-  letter-spacing: -0.04em;
-  color: #111;
+  position: relative;
+  z-index: 2;
 }
 
 .destinations-header h1::after {
   content: "";
   display: block;
-  width: 90px;
-  height: 6px;
+  width: 80px;
+  height: 8px;
   margin-top: 16px;
-  border-radius: 4px;
-  background: linear-gradient(90deg, #ff6a00, #ffb347);
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--primary-color-start), var(--primary-color-end));
+  transition: width 0.5s var(--ease-spring);
 }
 
+.destinations-header:hover h1::after {
+  width: 150px;
+}
+
+/* =========================================================
+   4. High-Performance Grid System
+   ========================================================= */
+
 main {
-  flex: 1; /* Pushes the footer to the bottom */
-  padding-top: 0px;
+  flex: 1;
+  width: 100%;
 }
 
 .destination-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 30px;
-  max-width: 1400px;
+  /* Auto-adapts columns without media queries. Min width is 300px */
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: clamp(20px, 3vw, 40px);
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 40px 20px;
-}
-
-footer {
-  text-align: center;
-  padding: 20px;
+  padding: 20px clamp(20px, 5vw, 60px) 80px;
+  align-items: stretch; /* Forces cards to equal height in rows */
 }
 
 /* =========================================================
-   Destination Card
+   5. The Premium Destination Card
    ========================================================= */
 
 .destination {
   position: relative;
-  border-radius: 20px;
+  border-radius: 28px;
   overflow: hidden;
-  cursor: pointer;
-
   display: flex;
   flex-direction: column;
-
-  /* 🔒 lock card size */
-  height: auto;
-  min-height: 420px;
-  max-height: 420px;
-
   background: var(--card-bg-light);
-  box-shadow: 0 8px 20px var(--shadow-light);
-  transition: transform 0.35s ease, box-shadow 0.35s ease, background 0.35s ease;
+  box-shadow: var(--shadow-sm-light);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  transition: all 0.5s var(--ease-spring);
+  /* Removed locked heights to allow responsive text wrapping */
+  height: 100%; 
 }
 
-
 .destination:hover {
-  transform: translateY(-8px) scale(1.04);
-  box-shadow: 0 25px 50px var(--shadow-hover-light);
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: var(--shadow-lg-light);
   z-index: 10;
 }
 
+/* Image scaling inside the card */
 .destination-img {
   width: 100%;
-  aspect-ratio: 16/9;
+  aspect-ratio: 4/3; /* Locks the image ratio perfectly regardless of card width */
   object-fit: cover;
   flex-shrink: 0;
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-  transition: transform 0.35s ease, filter 0.35s ease;
+  transition: transform 0.8s var(--ease-smooth);
 }
 
 .destination:hover .destination-img {
-  transform: scale(1.05);
-  filter: brightness(1.05);
+  transform: scale(1.1) rotate(1deg);
 }
 
-.destination::after {
+/* Embedded Gradient Overlay */
+.destination::before {
   content: "";
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
-  border-radius: 20px;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0));
+  aspect-ratio: 4/3;
+  background: linear-gradient(to top, rgba(15, 23, 42, 0.8) 0%, transparent 60%);
   opacity: 0;
-  transition: opacity 0.35s ease;
+  z-index: 1;
+  transition: opacity 0.4s var(--ease-smooth);
   pointer-events: none;
 }
 
-.destination:hover::after {
+.destination:hover::before {
   opacity: 1;
 }
 
-/* =========================================================
-   Card Info & Button
-   ========================================================= */
-
+/* Card Information Panel */
 .destination-info {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  flex-grow: 1;
-  padding: 20px 25px;
-  gap: 12px;
+  flex-grow: 1; /* Pushes button to bottom */
+  padding: 28px;
+  gap: 16px;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .destination-title {
-  font-size: 1.45rem;
-  font-weight: 700;
-  color: var(--text-color-light);
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.2;
   transition: color 0.3s ease;
 }
 
 .destination:hover .destination-title {
-  color: var(--text-color-light);
+  background: linear-gradient(90deg, var(--primary-color-start), var(--primary-color-end));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .destination-info p {
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: var(--text-secondary-light);
-  line-height: 1.5;
+  line-height: 1.6;
   margin: 0;
-  transition: color 0.3s ease;
-}
-.destination-info p {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.destination-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-  align-items: start;
-}
 
+/* =========================================================
+   6. Dynamic Action Buttons
+   ========================================================= */
 
 .details-btn {
-  padding: 10px 18px;
+  margin-top: auto; /* Always anchors to the bottom */
+  padding: 14px 24px;
   border: none;
-  border-radius: 12px;
-  font-weight: 600;
+  border-radius: 16px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1rem;
   cursor: pointer;
   text-align: center;
+  position: relative;
+  overflow: hidden;
   background: linear-gradient(135deg, var(--primary-color-start), var(--primary-color-end));
   color: #fff;
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px var(--accent-glow);
+  transition: all 0.4s var(--ease-spring);
+}
+
+/* The Glossy Light-Ray Hover Effect */
+.details-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+}
+
+.destination:hover .details-btn::after {
+  left: 150%;
 }
 
 .details-btn:hover {
-  background: linear-gradient(135deg, #0099ff 0%, #00c4ff 100%);
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 25px var(--accent-glow);
 }
 
-.destination-activities {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
+.details-btn:active {
+  transform: translateY(0) scale(0.96);
 }
 
-.destination-activities span {
-  background: rgba(255, 255, 255, 0.7);
-  color: var(--text-secondary-light);
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(4px);
-}
+/* =========================================================
+   7. Theme Toggle Button
+   ========================================================= */
 
-.destination-activities span:hover {
-  background: rgba(0, 0, 0, 0.08);
-  color: var(--text-color-light);
-}
-
-/* Theme toggle button styling */
 .theme-toggle {
   position: fixed;
-  top: 20px;
-  right: 20px;
-  background: var(--card-bg-light);
-  border: 1px solid var(--text-secondary-light);
-  color: var(--text-secondary-light);
-  width: 44px;
-  height: 44px;
+  top: 24px;
+  right: clamp(16px, 4vw, 32px);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  color: var(--text-color-light);
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   cursor: pointer;
-  transition: all 0.3s ease;
   z-index: 100;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-body.dark .theme-toggle {
-  background: var(--card-bg-dark);
-  border: 1px solid var(--text-secondary-dark);
-  color: var(--text-secondary-dark);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  box-shadow: var(--shadow-sm-light);
+  transition: all 0.5s var(--ease-spring);
 }
 
 .theme-toggle:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+  transform: scale(1.15) rotate(15deg);
+  color: var(--primary-color-start);
+  box-shadow: var(--shadow-lg-light);
 }
-
-body.dark .theme-toggle:hover {
-  box-shadow: 0 6px 16px rgba(0,0,0,0.5);
-}
-
-.theme-toggle:hover {
-  background: var(--bg-color-light);
-  color: var(--text-color-light);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(0,0,0,0.15);
-}
-
-body.dark .theme-toggle {
-  background: var(--card-bg-dark);
-  color: var(--text-secondary-dark);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-}
-
-body.dark .theme-toggle:hover {
-  background: var(--bg-color-dark);
-  color: var(--text-color-dark);
-  box-shadow: 0 8px 18px rgba(0,0,0,0.6);
-}
-
 
 /* =========================================================
-   Modal Animations
+   8. Empty States & Utilities
    ========================================================= */
+
+.no-data {
+  text-align: center;
+  grid-column: 1 / -1; /* Spans across entire grid */
+  padding: 80px 20px;
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-secondary-light);
+  opacity: 0;
+  animation: fadeIn 0.8s forwards;
+}
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease forwards;
+footer {
+  text-align: center;
+  padding: 40px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-secondary-light);
+  border-top: 1px solid rgba(0,0,0,0.05);
 }
 
-@keyframes modalOpen {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-.animate-modalOpen {
-  animation: modalOpen 0.35s ease forwards;
+body.dark footer {
+  border-top: 1px solid rgba(255,255,255,0.05);
 }
 
 /* =========================================================
-   Responsive Adjustments
-   - Mobile and large screen optimizations
+   9. Home Page Elements (Aligned with Premium Aesthetics)
    ========================================================= */
 
-@media (max-width: 768px) {
-  .destination-img {
-    aspect-ratio: 4/3;
-  }
+.home-section {
+  padding: clamp(60px, 8vw, 120px) 20px;
+  text-align: center;
+}
 
-  .destination-title {
-    font-size: 1.25rem;
-  }
+.section-title {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
 
-  .details-btn {
-    padding: 8px 14px;
+.home-hero-title {
+  font-family: var(--font-heading);
+  font-size: clamp(3rem, 8vw, 5rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+.home-btn-alt, .newsletter-btn {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  padding: 16px 32px;
+  border-radius: 99px;
+  transition: all 0.4s var(--ease-spring);
+  border: 2px solid transparent; /* Prevents layout wiggle on hover */
+}
+
+/* =========================================================
+   10. Exception / Fallback Media Queries
+   (Grid handles 90% of responsiveness automatically)
+   ========================================================= */
+
+@media (max-width: 600px) {
+  .destinations-header {
+    width: 100%;
+    margin: 0;
+    border-radius: 0 0 32px 32px; /* Flushes against the top on tiny screens */
+    border-left: none;
+    border-right: none;
+    border-top: none;
   }
 }
 
 @media (min-width: 1600px) {
   .destination-list {
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    /* Slightly wider cards on ultra-wide screens */
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); 
   }
-}
-
-.no-data {
-  text-align: center;
-  width: 100%;
-  padding: 50px;
-  font-size: 1.2rem;
-  color: var(--text-secondary-light);
-}
-
-body.dark .no-data {
-  color: var(--text-secondary-dark);
-}
-/* =========================================================
-   Home Page Sections
-   ========================================================= */
-
-.home-section {
-  padding: 80px 20px;
-  text-align: center;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.home-destinations-section {
-  background-color: var(--bg-color-light);
-  color: var(--text-color-light);
-}
-
-.testimonials-section {
-  background-color: var(--bg-color-dark);
-  color: var(--text-color-dark);
-}
-
-.newsletter-section {
-  background-color: var(--card-bg-light);
-  color: var(--text-color-light);
-}
-
-.about-section {
-  background-color: var(--bg-color-dark);
-  color: var(--text-color-dark);
-}
-
-body.dark .home-destinations-section,
-body.dark .newsletter-section {
-  background-color: var(--bg-color-dark);
-  color: var(--text-color-dark);
-}
-
-body.dark .testimonials-section,
-body.dark .about-section {
-  background-color: var(--card-bg-dark);
-  color: var(--text-color-dark);
-}
-
-/* =========================================================
-   Home Page Typography
-   ========================================================= */
-
-.section-title {
-  font-size: 2.5rem;
-  font-weight: 800;
-  margin-bottom: 1rem;
-  color: var(--text-color-light);
-}
-
-body.dark .section-title {
-  color: var(--text-color-dark);
-}
-
-.section-subtitle {
-  font-size: 1rem;
-  color: var(--text-secondary-light);
-  max-width: 48rem;
-  margin: 0 auto;
-}
-
-body.dark .section-subtitle {
-  color: var(--text-secondary-dark);
-}
-
-/* =========================================================
-   Hero Section
-   ========================================================= */
-
-.home-hero {
-  position: relative;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.home-hero-video {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.home-hero-overlay {
-  position: absolute;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.home-hero-content {
-  position: relative;
-  z-index: 10;
-  text-align: center;
-  padding: 0 1rem;
-  max-width: 56rem;
-}
-
-.home-hero-title {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: white;
-  margin-bottom: 1.5rem;
-  letter-spacing: 0.05em;
-}
-
-.home-hero-subtitle {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: white;
-  margin-bottom: 2.5rem;
-}
-
-.home-hero-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  justify-content: center;
-}
-
-@media (min-width: 640px) {
-  .home-hero-buttons {
-    flex-direction: row;
-  }
-}
-
-.home-btn-alt {
-  background-color: transparent;
-  border: 2px solid white;
-  color: white;
-  font-weight: 700;
-  padding: 0.75rem 2rem;
-  border-radius: 9999px;
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
-}
-
-.home-btn-alt:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-.home-hero-scroll {
-  position: absolute;
-  bottom: 2.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  animation: bounce 1s infinite;
-}
-
-.home-scroll-btn {
-  color: white;
-  font-size: 2.25rem;
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-25%);
-  }
-}
-
-/* =========================================================
-   Home Page Cards & Buttons
-   ========================================================= */
-
-.newsletter-input {
-  padding: 1rem 1rem;
-  border-radius: 9999px;
-  color: #4a5568;
-  flex-grow: 1;
-  max-width: 28rem;
-  outline: none;
-}
-
-.newsletter-btn {
-  background-color: white;
-  color: var(--primary-color-start);
-  font-weight: 700;
-  padding: 1rem 1.25rem;
-  border-radius: 9999px;
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 400ms;
-}
-
-.newsletter-btn:hover {
-  background-color: #f7fafc;
-}
-
-.testimonial-card {
-  background-color: var(--bg-color-dark);
-  border-radius: 0.5rem;
-  padding: 2rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  transition: box-shadow 0.3s ease;
-}
-
-.testimonial-card:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
-}
-
-body.dark .testimonial-card {
-  background-color: var(--card-bg-dark);
-}
-
-body.dark .testimonial-card:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
-}
-
-.testimonial-image {
-  width: 4rem;
-  height: 4rem;
-  border-radius: 9999px;
-  object-fit: cover;
-  margin-right: 1rem;
-}
-
-.testimonial-name {
-  font-weight: 700;
-  font-size: 1.125rem;
-}
-
-.testimonial-location {
-  color: var(--text-secondary-dark);
-}
-
-body.dark .testimonial-location {
-  color: var(--text-secondary-light);
-}
-
-.testimonial-text {
-  color: var(--text-secondary-light);
-  font-style: italic;
-}
-
-body.dark .testimonial-text {
-  color: var(--text-secondary-dark);
-}
-
-.about-image {
-  border-radius: 0.5rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }

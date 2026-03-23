@@ -1,206 +1,339 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* ===== Variables ===== */
+:root {
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+  --admin-color: #8b5cf6;
+  --admin-hover: #7c3aed;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* ===== Layout ===== */
 .auth-container {
-  padding-top: 120px;
-  height: 100vh;
+  /* Using min-height and padding directly guarantees perfect centering without overflow */
+  min-height: 100vh;
+  padding: 120px 20px 40px; 
   display: flex;
   justify-content: center;
   align-items: center;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  position: relative;
 }
 
+/* 🔥 Flawlessly stretched background strictly anchored to the viewport */
 .auth-background {
-  width: 100%;
-  height: calc(100vh - 120px);
+  position: fixed; 
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
   background-image: url('https://images.unsplash.com/photo-1742197062898-353bd035dc27?q=80&w=2128&auto=format&fit=crop');
   background-size: cover;
   background-position: center;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  z-index: 0;
 }
 
-/* Dark overlay for readability */
+/* Beautiful dark overlay to make the glass pop */
 .auth-background::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(15, 23, 42, 0.4);
 }
 
-.auth-form-container {
+/* Content Wrapper */
+.auth-content {
   position: relative;
-  z-index: 2;
+  z-index: 2; 
   width: 100%;
-  max-width: 360px;
-  background: #ffffff;
+  max-width: 420px; /* Slightly wider for modern aesthetic */
+}
+
+/* ===== Stunning Glassmorphism Card ===== */
+.auth-form-container {
+  background: rgba(255, 255, 255, 0.7); /* Translucent white */
+  backdrop-filter: blur(24px); /* Heavy blur for frosted glass effect */
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.6); /* Soft inner border */
+  border-radius: 24px;
+  padding: 40px 32px;
+  box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.4), 
+              0 0 0 1px rgba(255, 255, 255, 0.3) inset;
+  transform: translateY(0);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.auth-form-container:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 40px 80px -15px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== Typography Header ===== */
+.auth-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.auth-header h2 {
+  margin: 0 0 6px 0;
+  color: #0f172a;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.auth-header p {
+  color: #475569;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* ===== iOS-Style Sleek Toggles ===== */
+.login-type-toggle {
+  display: flex;
+  background: rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(8px);
   border-radius: 12px;
-  padding: 32px;
-  overflow: hidden; /* 🔥 FIX */
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  padding: 4px;
+  margin-bottom: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
-/* ===== Fix password eye button ===== */
-.password-wrapper {
+.login-type-toggle button {
+  flex: 1;
+  padding: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.login-type-toggle button:hover:not(.active) {
+  color: #1e293b;
+}
+
+/* Active buttons are bright pristine white with soft shadow */
+.login-type-toggle button.active {
+  color: #0f172a;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.login-type-toggle button:last-child.active {
+  color: var(--admin-color);
+}
+
+/* ===== Soft Inputs & Icons ===== */
+.input-group {
+  margin-bottom: 24px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  margin-left: 4px;
+}
+
+.input-wrapper {
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.password-wrapper input {
-  padding-right: 48px; /* space for eye */
+.input-icon {
+  position: absolute;
+  left: 16px;
+  width: 20px;
+  height: 20px;
+  color: #94a3b8;
+  pointer-events: none;
+  transition: var(--transition);
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 14px 14px 14px 48px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.5); /* Semi-transparent inputs inside the glass */
+  transition: var(--transition);
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02) inset;
+}
+
+.input-wrapper input:focus {
+  outline: none;
+  background: #ffffff; /* Turns solid white when typing */
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+}
+
+.input-wrapper input:focus ~ .input-icon,
+.input-wrapper:focus-within .input-icon {
+  color: var(--primary-color);
+}
+
+/* Password Eye Button */
+.password-group .input-wrapper input {
+  padding-right: 48px; 
 }
 
 .toggle-password {
-  all: unset;                /* 🔥 resets global button styles */
+  all: unset; 
   position: absolute;
-  right: 12px;
+  right: 14px;
   top: 50%;
   transform: translateY(-50%);
   width: 24px;
   height: 24px;
   cursor: pointer;
-  color: #6b7280;
+  color: #94a3b8;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: var(--transition);
 }
 
 .toggle-password svg {
-  width: 15px;
+  width: 18px;
   height: 18px;
 }
 
-.toggle-password:hover {
-  color: #bec5d5;
+.toggle-password:hover,
+.input-wrapper input:focus + .toggle-password {
+  color: var(--primary-color);
 }
 
-
-/* ===== Entry Animation ===== */
-@keyframes slideFade {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-in {
-  animation: slideFade 0.6s ease-out forwards;
-}
-
-/* ===== Typography ===== */
-.auth-form-container h2 {
-  text-align: center;
-  margin-bottom: 28px;
-  color: #111;
-  font-size: 1.6rem;
-  font-weight: 600;
-}
-
-/* ===== Inputs ===== */
-.input-group {
-  margin-bottom: 18px;
-}
-
-.input-group label {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #555;
-}
-
-.input-group input {
+/* ===== Vibrant Submit Button ===== */
+.submit-btn {
   width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 15px;
-  transition: border 0.2s ease, box-shadow 0.2s ease;
-}
-
-.input-group input:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-}
-
-/* ===== Checkbox ===== */
-.checkbox-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 18px;
-  font-size: 0.85rem;
-  color: #444;
-}
-
-/* ===== Button ===== */
-button {
-  width: 100%;
-  height: 44px;
-  background-color: #2563eb;
+  height: 52px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  border-radius: 12px;
+  font-size: 1rem;
   font-weight: 600;
+  letter-spacing: 0.02em;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.15s ease;
+  transition: all 0.3s ease;
+  margin-top: 8px;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
 }
 
-button:hover {
-  background-color: #1e40af;
-  transform: translateY(-1px);
+.submit-btn:hover:not(:disabled) {
+  box-shadow: 0 12px 25px rgba(37, 99, 235, 0.45);
+  transform: translateY(-2px);
 }
 
-button:active {
-  transform: translateY(0);
+.submit-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* ===== Dynamic Admin Theming ===== */
+.auth-container:has(.login-type-toggle button:last-child.active) .submit-btn {
+  background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
+  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+}
+
+.auth-container:has(.login-type-toggle button:last-child.active) .submit-btn:hover:not(:disabled) {
+  box-shadow: 0 12px 25px rgba(139, 92, 246, 0.45);
+}
+
+.auth-container:has(.login-type-toggle button:last-child.active) .input-wrapper input:focus {
+  border-color: var(--admin-color);
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
+}
+
+.auth-container:has(.login-type-toggle button:last-child.active) .input-wrapper:focus-within .input-icon,
+.auth-container:has(.login-type-toggle button:last-child.active) .input-wrapper input:focus + .toggle-password {
+  color: var(--admin-color);
 }
 
 /* ===== Error Animation ===== */
+.error-msg-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(254, 226, 226, 0.8);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  animation: shake 0.4s ease-in-out;
+}
+
+.error-msg-container svg {
+  width: 18px;
+  height: 18px;
+  color: #dc2626;
+  flex-shrink: 0;
+}
+
 .error-msg {
   color: #dc2626;
-  text-align: center;
-  margin-top: 14px;
   font-size: 0.85rem;
-  animation: fadeIn 0.3s ease;
+  margin: 0;
+  font-weight: 600;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
 }
 
-/* ===== Redirect ===== */
+/* ===== Redirect Footer ===== */
+.auth-footer {
+  margin-top: 28px;
+  text-align: center;
+}
+
 .redirect-text {
-  text-align: center;
-  margin-top: 18px;
-  font-size: 0.85rem;
-  color: #555;
+  font-size: 0.95rem;
+  color: #475569;
+  margin: 0;
 }
 
 .redirect-text a {
-  color: #2563eb;
+  color: var(--primary-color);
   text-decoration: none;
   font-weight: 600;
+  transition: var(--transition);
+  margin-left: 6px;
 }
 
 .redirect-text a:hover {
   text-decoration: underline;
+  color: var(--primary-hover);
+}
+
+.auth-container:has(.login-type-toggle button:last-child.active) .redirect-text a {
+  color: var(--admin-color);
+}
+
+/* ===== Entry Animation ===== */
+@keyframes slideFade {
+  from { opacity: 0; transform: translateY(40px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-in {
+  animation: slideFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* ===== Mobile ===== */
 @media (max-width: 768px) {
   .auth-form-container {
-    padding: 24px;
+    padding: 32px 24px;
   }
 }
-

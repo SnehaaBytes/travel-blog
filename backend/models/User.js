@@ -1,22 +1,12 @@
 import mongoose from 'mongoose';
-
 const userSchema = new mongoose.Schema({
-    username: {
-        type: String,
-        required: true,
-        unique: true,
-        minlength: 3
-    },
-    password: {
-        type: String,
-        required: true,
-        minlength: 5
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
+  username: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  
+  // 👉 ADD THIS: Default gives regular user access. You can manually set this to true directly in MongoDB for your admin account.
+  isAdmin: { type: Boolean, default: false } 
 });
+
 
 const User = mongoose.model('User', userSchema);
 
