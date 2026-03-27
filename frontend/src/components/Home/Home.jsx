@@ -1,3 +1,5 @@
+import AiTripPlanner from "../AiTripPlanner";
+
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios'; // We imported axios here for your database fetch
@@ -57,7 +59,6 @@ const Home = () => {
     try {
       setLoading(true);
       setError(null);
-      // Request your actual live destinations!
       const res = await axios.get("http://localhost:5000/api/destinations");
       setDestinations(res.data);
     } catch (err) {
@@ -80,7 +81,6 @@ const Home = () => {
     e.preventDefault();
     if (!reviewForm.name || !reviewForm.destination || !reviewForm.review) return;
     
-    // Create new demo testimonial and inject to top
     const newTestimonial = {
       id: Date.now(),
       name: reviewForm.name,
@@ -91,14 +91,11 @@ const Home = () => {
     };
     
     setTestimonials([newTestimonial, ...testimonials.slice(0, 2)]);
-    
-    // Clear form
     setReviewForm({ name: '', destination: '', rating: 5, review: '' });
     alert("Thank you! Your experience has been successfully shared.");
   };
 
   const filteredDestinations = useMemo(() => {
-    // If you ever want less than all destinations on home screen, change the slice length below
     if (activeTab === 'popular') return destinations.slice(0, 4);
     if (activeTab === 'trending') return [...destinations].sort(() => 0.5 - Math.random()).slice(0, 4);
     if (activeTab === 'new') return [...destinations].reverse().slice(0, 4);
@@ -120,7 +117,6 @@ const Home = () => {
           <source src="https://videos.pexels.com/video-files/2146396/2146396-uhd_2560_1440_30fps.mp4" type="video/mp4" />
         </video>
         
-        {/* Soft elegant gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-slate-900/90 dark:to-slate-950"></div>
         
         <div className="relative z-10 w-full max-w-5xl px-6 flex flex-col items-center text-center mt-10">
@@ -152,7 +148,6 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Scroll Indicator */}
         <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 cursor-pointer" onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}>
           <div className="w-8 h-12 border-2 border-white/50 rounded-full flex justify-center p-2 opacity-80 hover:opacity-100 transition-opacity">
             <div className="w-1 h-3 bg-white rounded-full animate-bounce"></div>
@@ -174,7 +169,6 @@ const Home = () => {
             </p>
           </div>
 
-          {/* Premium Pill Tabs */}
           <div className="flex justify-center mb-16">
             <div className="inline-flex bg-slate-200/80 dark:bg-slate-800 p-1.5 rounded-full shadow-inner" role="group">
               {['popular', 'trending', 'new'].map((tab) => (
@@ -203,12 +197,10 @@ const Home = () => {
               {filteredDestinations.map((destination) => (
                 <div key={destination._id || destination.title} className="group flex flex-col bg-white/70 dark:bg-slate-900/70 backdrop-blur-md rounded-[2rem] overflow-hidden border border-white dark:border-slate-800 shadow-xl shadow-slate-200/40 dark:shadow-none hover:shadow-2xl hover:shadow-blue-500/10 dark:hover:shadow-blue-900/20 transition-all duration-500 hover:-translate-y-2 h-full">
                   
-                  {/* Image Container */}
                   <div className="relative h-60 overflow-hidden m-2 rounded-[1.5rem]">
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10"></div>
-                   <img src={`/images/${destination.imgSrc}`} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={destination.title} />
+                    <img src={`/images/${destination.imgSrc}`} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={destination.title} />
 
-                    
                     <div className="absolute top-4 left-4 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur text-blue-700 dark:text-blue-400 text-xs font-extrabold px-3 py-1.5 rounded-full capitalize shadow-sm">
                       {activeTab} 
                     </div>
@@ -216,7 +208,6 @@ const Home = () => {
                     <h3 className="absolute bottom-4 left-5 z-20 text-2xl font-bold text-white tracking-wide">{destination.title}</h3>
                   </div>
 
-                  {/* Card Body */}
                   <div className="px-6 py-5 flex flex-col flex-grow">
                     <p className="text-slate-500 dark:text-slate-400 text-sm mb-6 leading-relaxed flex-grow">
                       {truncateString(destination.description, 110)}
@@ -247,7 +238,6 @@ const Home = () => {
 
       {/* --- TESTIMONIALS SECTION --- */}
       <section ref={testimonialsRef} className="py-24 bg-slate-100 dark:bg-slate-900 transition-colors duration-500 relative overflow-hidden">
-        {/* Decorative background blobs for dark mode */}
         <div className="hidden dark:block absolute top-[-10%] right-[-5%] w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-[120px] opacity-20 pointer-events-none"></div>
         <div className="hidden dark:block absolute bottom-[-10%] left-[-5%] w-96 h-96 bg-purple-600 rounded-full mix-blend-multiply filter blur-[120px] opacity-20 pointer-events-none"></div>
 
@@ -285,7 +275,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* --- SHARE YOUR EXPERIENCE FORM (Replaced Newsletter) --- */}
+      {/* --- SHARE YOUR EXPERIENCE FORM --- */}
       <section className="py-24 bg-white dark:bg-slate-950 transition-colors duration-500 relative">
         <div className="container mx-auto px-6 lg:px-12">
           <div className="max-w-4xl mx-auto bg-slate-50 dark:bg-slate-900/50 backdrop-blur-lg border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 md:p-14 shadow-2xl relative overflow-hidden">
@@ -299,7 +289,6 @@ const Home = () => {
             </div>
             
             <form onSubmit={handleReviewSubmit} className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-              {/* Name Field */}
               <div className="col-span-1">
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Full Name</label>
                 <input
@@ -312,7 +301,6 @@ const Home = () => {
                 />
               </div>
 
-              {/* Destination Dropdown */}
               <div className="col-span-1">
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Select Destination</label>
                 <select
@@ -323,13 +311,11 @@ const Home = () => {
                 >
                   <option value="" disabled>Where did you go?</option>
                   {destinations.map((dest) => (
-                    // Using database ID for key if it exists, fallback to map title
                     <option key={dest._id || dest.title} value={dest.title}>{dest.title}</option>
                   ))}
                 </select>
               </div>
 
-              {/* Rating */}
               <div className="col-span-1 md:col-span-2">
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Rate Your Experience</label>
                 <div className="flex gap-2 text-2xl">
@@ -346,7 +332,6 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Review Text Area */}
               <div className="col-span-1 md:col-span-2">
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Write Your Review</label>
                 <textarea
@@ -359,7 +344,6 @@ const Home = () => {
                 ></textarea>
               </div>
 
-              {/* Submit Button */}
               <div className="col-span-1 md:col-span-2 mt-2 text-center">
                 <button 
                   type="submit"
@@ -378,7 +362,6 @@ const Home = () => {
         <div className="container mx-auto px-6 lg:px-12">
           <div className="flex flex-col lg:flex-row items-center gap-16">
             
-            {/* Left Image Side directly overlapping for a modern look */}
             <div className="lg:w-1/2 relative">
               <div className="absolute -inset-4 bg-blue-100 dark:bg-blue-900/30 rounded-[2.5rem] transform rotate-3"></div>
               <img
@@ -386,7 +369,6 @@ const Home = () => {
                 alt="Travel Team"
                 className="relative rounded-[2rem] shadow-2xl w-full h-[500px] object-cover border-4 border-white dark:border-slate-800"
               />
-              {/* Floating Stat Box */}
               <div className="absolute -bottom-8 -right-8 sm:-right-4 bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700">
                 <div className="flex items-center gap-4">
                   <div className="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-full text-blue-600 dark:text-blue-400"><i className="fas fa-suitcase-rolling text-2xl"></i></div>
@@ -398,7 +380,6 @@ const Home = () => {
               </div>
             </div>
 
-            {/* Right Content */}
             <div className="lg:w-1/2 pt-12 lg:pt-0">
               <span className="text-blue-600 dark:text-blue-400 font-bold tracking-widest uppercase text-sm mb-4 block">Our Story</span>
               <h2 className="text-4xl md:text-5xl font-extrabold mb-8 text-slate-900 dark:text-white leading-tight">We Are Passionate About <span className="text-blue-600 dark:text-blue-400">Travel</span></h2>
@@ -421,6 +402,9 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* ✅ AI TRIP PLANNER WIDGET — floating bottom-right corner */}
+      <AiTripPlanner />
 
     </div>
   );
