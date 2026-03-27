@@ -354,24 +354,22 @@ export default function AiTripPlanner() {
 
   async function callAI(msgs, systemPrompt, maxTokens = 2000) {
     setError(null);
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("/api/ai/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: maxTokens,
-        system: systemPrompt,
         messages: msgs,
+        system: systemPrompt,
+        max_tokens: maxTokens,
       }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err?.error?.message || `HTTP ${res.status}`);
+      throw new Error(err?.error || `HTTP ${res.status}`);
     }
     const data = await res.json();
     return data.content?.[0]?.text || "Something went wrong 🙏 Please try again.";
   }
-
   async function startPlanning(finalData) {
     setShowHero(false);
     setPhase("chat");
@@ -731,7 +729,7 @@ export default function AiTripPlanner() {
                   ><SendSVG /></button>
                 </div>
                 <div style={{ textAlign: "center", marginTop: 6, fontSize: 10, color: "#4a2808", letterSpacing: "0.03em" }}>
-                  🇮🇳 Powered by Claude AI · Press Enter to send
+                  🇮🇳 · Press Enter to send
                 </div>
               </div>
             </>
@@ -742,3 +740,4 @@ export default function AiTripPlanner() {
   );
 }
 
+                 
