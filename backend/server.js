@@ -1,3 +1,9 @@
+// Add at the top with your other imports:
+import aiRouter from "./routes/ai.js";
+
+// Add after your app.use(express.json()) line:
+app.use("/api/ai", aiRouter);
+
 // server.js
 
 import express from 'express';
