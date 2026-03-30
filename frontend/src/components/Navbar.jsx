@@ -100,7 +100,11 @@ const Navbar = () => {
 
   const location = useLocation();
 
-  const navLinks = ["Home", "Destinations", "Explore Map", "Review", "About"];
+  // 🔥 NEW: Base links for everyone
+  const baseNavLinks = ["Home", "Destinations", "Explore Map", "Review", "About"];
+  
+  // 🔥 NEW: Dynamically add "Admin Panel" only if the logged-in user is an admin
+  const navLinks = user?.isAdmin ? [...baseNavLinks, "Admin Panel"] : baseNavLinks;
 
   // Scroll effect
   useEffect(() => {
@@ -114,9 +118,11 @@ const Navbar = () => {
     setMobileMenuOpen(false);
   }, [location]);
 
+  // 🔥 NEW: Handle routing correctly for the special Admin item
   const getRoutePath = (item) => {
     if (item === "Home") return "/";
     if (item === "Explore Map") return "/explore-map";
+    if (item === "Admin Panel") return "/admin"; // Update to /admin/dashboard if that's your route
     return `/${item.toLowerCase()}`;
   };
 
@@ -132,7 +138,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16 sm:h-20">
           
           {/* Logo */}
-          <Link to="/" className="text-2xl font-bold text-slate-900 dark:text-white transition-colors">
+          <Link to="/" className="flex items-center text-2xl font-bold text-slate-900 dark:text-white transition-colors">
             Travel<span className="text-indigo-600 dark:text-indigo-500">Blogs</span>
           </Link>
 
@@ -140,20 +146,27 @@ const Navbar = () => {
           <div className="hidden lg:flex items-center flex-1 ml-10">
             
             {/* Links */}
-            <div className="flex gap-8 text-sm">
-              {navLinks.map((item) => (
-                <Link
-                  key={item}
-                  to={getRoutePath(item)}
-                  className={`transition-colors font-medium ${
-                    location.pathname === getRoutePath(item)
-                      ? "text-indigo-600 dark:text-indigo-400"
-                      : "text-slate-600 hover:text-indigo-600 dark:text-white/70 dark:hover:text-indigo-400"
-                  }`}
-                >
-                  {item}
-                </Link>
-              ))}
+            <div className="flex items-center gap-8 text-sm">
+              {navLinks.map((item) => {
+                const isCurrent = location.pathname === getRoutePath(item);
+                const isAdminLink = item === "Admin Panel";
+                
+                return (
+                  <Link
+                    key={item}
+                    to={getRoutePath(item)}
+                    className={`transition-colors font-medium flex items-center ${
+                      isAdminLink 
+                        ? "text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50 dark:bg-indigo-500/10 px-4 py-1.5 rounded-full border border-indigo-200 dark:border-indigo-500/30 hover:bg-indigo-100 dark:hover:bg-indigo-500/20"
+                        : isCurrent
+                          ? "text-indigo-600 dark:text-indigo-400"
+                          : "text-slate-600 hover:text-indigo-600 dark:text-white/70 dark:hover:text-indigo-400"
+                    }`}
+                  >
+                    {item}
+                  </Link>
+                );
+              })}
             </div>
 
             {/* Right Side */}
@@ -216,32 +229,39 @@ const Navbar = () => {
 
           {/* Mobile Links */}
           <div className="flex flex-col gap-4">
-            {navLinks.map((item) => (
-              <Link
-                key={item}
-                to={getRoutePath(item)}
-                className={`font-medium transition-colors ${
-                    location.pathname === getRoutePath(item)
-                      ? "text-indigo-600 dark:text-indigo-400"
-                      : "text-slate-700 dark:text-white/80 hover:text-indigo-600 dark:hover:text-indigo-400"
+            {navLinks.map((item) => {
+              const isCurrent = location.pathname === getRoutePath(item);
+              const isAdminLink = item === "Admin Panel";
+              
+              return (
+                <Link
+                  key={item}
+                  to={getRoutePath(item)}
+                  className={`font-medium transition-colors ${
+                    isAdminLink
+                      ? "text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50 dark:bg-indigo-500/10 px-4 py-2 rounded-lg border border-indigo-200 dark:border-indigo-500/30"
+                      : isCurrent
+                        ? "text-indigo-600 dark:text-indigo-400"
+                        : "text-slate-700 dark:text-white/80 hover:text-indigo-600 dark:hover:text-indigo-400"
                   }`}
-              >
-                {item}
-              </Link>
-            ))}
+                >
+                  {item}
+                </Link>
+              );
+            })}
             
-             {/* Mobile Auth button if necessary */}
-              <div className="pt-2 border-t border-slate-200 dark:border-white/5">
-                {user ? (
-                  <button onClick={logout} className="w-full text-left font-medium text-slate-700 dark:text-white active:text-indigo-600">
-                    Logout
-                  </button>
-                ) : (
-                  <Link to="/login" className="block font-medium text-slate-700 dark:text-white active:text-indigo-600">
-                    Login
-                  </Link>
-                )}
-             </div>
+            {/* Mobile Auth button */}
+            <div className="pt-2 border-t border-slate-200 dark:border-white/5">
+              {user ? (
+                <button onClick={logout} className="w-full text-left font-medium text-slate-700 dark:text-white active:text-indigo-600">
+                  Logout
+                </button>
+              ) : (
+                <Link to="/login" className="block font-medium text-slate-700 dark:text-white active:text-indigo-600">
+                  Login
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       )}

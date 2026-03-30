@@ -30,11 +30,9 @@ const Login = () => {
     setLoading(false);
 
     if (result.success) {
-      if (loginType === 'admin') {
-        navigate('/admin'); // Redirect admin to admin panel
-      } else {
-        navigate('/'); // Redirect regular user home
-      }
+      // 🔥 FIX: Now EVERYONE is redirected to the Home Page! 
+      // Admins will just see the special "Admin Panel" button in the Navbar.
+      navigate('/'); 
     } else {
       setErrorMsg(result.message || 'Login failed. Please try again.');
     }

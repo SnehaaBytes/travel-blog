@@ -8,6 +8,10 @@ function ManageDestinations() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
 
+  // 🔥 NEW: Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // Change this to show more/less items per page
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
@@ -82,6 +86,11 @@ function ManageDestinations() {
       try {
         await axios.delete(`${API_URL}/${id}`);
         fetchDestinations();
+        
+        // Auto go-back a page if deleting the last item on the current page
+        if (paginatedDestinations.length === 1 && currentPage > 1) {
+          setCurrentPage(currentPage - 1);
+        }
       } catch (error) {
         console.error(error);
       }
@@ -128,6 +137,18 @@ function ManageDestinations() {
   const filteredDestinations = destinations.filter((dest) => 
     dest.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
     dest.location?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // 🔥 NEW: Reset to page 1 automatically if the user types in the search bar
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  // 🔥 NEW: Calculate Pages and Slice Data
+  const totalPages = Math.ceil(filteredDestinations.length / itemsPerPage) || 1;
+  const paginatedDestinations = filteredDestinations.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   return (
@@ -182,7 +203,8 @@ function ManageDestinations() {
                       </td>
                     </tr>
                   ) : (
-                    filteredDestinations.map((dest) => (
+                    // 🔥 NEW: Map through paginatedDestinations instead of filteredDestinations
+                    paginatedDestinations.map((dest) => (
                       <tr key={dest._id} className="md-table-row">
                         <td>
                           <div className="md-cell-flex">
@@ -215,6 +237,48 @@ function ManageDestinations() {
                   )}
                 </tbody>
               </table>
+              
+              {/* 🔥 NEW: Pagination Footer Controls */}
+              {filteredDestinations.length > 0 && (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                  <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.6)" }}>
+                    Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredDestinations.length)} of {filteredDestinations.length}
+                  </span>
+                  
+                  <div style={{ display: "flex", gap: "6px" }}>
+                    <button 
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      style={{ padding: "6px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", margin: 0, color: "white", cursor: currentPage === 1 ? "not-allowed" : "pointer", opacity: currentPage === 1 ? 0.5 : 1 }}
+                    >
+                      Prev
+                    </button>
+                    
+                    {Array.from({ length: totalPages }).map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentPage(idx + 1)}
+                        style={{ 
+                          width: "34px", height: "34px", borderRadius: "8px", 
+                          border: currentPage === idx + 1 ? "none" : "1px solid rgba(255,255,255,0.1)", 
+                          background: currentPage === idx + 1 ? "var(--primary-color, #4facfe)" : "rgba(255,255,255,0.05)", 
+                          color: "white", cursor: "pointer", fontWeight: "bold"
+                        }}
+                      >
+                        {idx + 1}
+                      </button>
+                    ))}
+
+                    <button 
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      style={{ padding: "6px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", margin: 0, color: "white", cursor: currentPage === totalPages ? "not-allowed" : "pointer", opacity: currentPage === totalPages ? 0.5 : 1 }}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
