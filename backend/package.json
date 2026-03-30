@@ -10,13 +10,14 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "This is the backend part of the Travel Blog application, built with Node.js, Express, and MongoDB.",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.80.0",
+    "@google/generative-ai": "^0.24.1",
     "bcrypt": "^6.0.0",
-    "cors": "^2.8.5",
+    "cors": "^2.8.6",
     "dotenv": "^17.3.1",
-    "express": "^4.21.2",
+    "express": "^4.22.1",
+    "mongodb": "^7.1.1",
     "mongoose": "^8.18.1"
   },
   "devDependencies": {

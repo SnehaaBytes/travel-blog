@@ -237,7 +237,6 @@ function OnboardingStep({ step, value, onChange, onNext, onBack, stepIdx, total 
 
   return (
     <div style={{ animation: "fadeSlideUp .35s ease", padding: "4px 0" }}>
-      {/* Progress bar */}
       <div style={{ display: "flex", gap: 4, marginBottom: 12 }}>
         {Array.from({ length: total }).map((_, i) => (
           <div key={i} style={{
@@ -352,33 +351,55 @@ export default function AiTripPlanner() {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
   useEffect(() => { if (phase === "chat") setTimeout(() => inputRef.current?.focus(), 350); }, [phase]);
 
+  // ✅ FIXED callAI — handles all error formats correctly
   async function callAI(msgs, systemPrompt, maxTokens = 2000) {
     setError(null);
-    const res = await fetch("/api/ai/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messages: msgs,
-        system: systemPrompt,
-        max_tokens: maxTokens,
-      }),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err?.error || `HTTP ${res.status}`);
+    try {
+      const res = await fetch("http://localhost:5000/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: msgs,
+          system: systemPrompt,
+          max_tokens: maxTokens,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const errMsg =
+          typeof data?.error === "string"
+            ? data.error
+            : data?.error?.message || `Server error (HTTP ${res.status})`;
+        throw new Error(errMsg);
+      }
+
+      const text =
+        data?.content?.[0]?.text ||
+        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        data?.text ||
+        null;
+
+      if (!text) throw new Error("Empty response from AI. Please try again.");
+      return text;
+
+    } catch (e) {
+      throw new Error(
+        typeof e.message === "string" ? e.message : "Unknown error occurred"
+      );
     }
-    const data = await res.json();
-    return data.content?.[0]?.text || "Something went wrong 🙏 Please try again.";
   }
+
   async function startPlanning(finalData) {
     setShowHero(false);
     setPhase("chat");
 
-    const days          = Array.isArray(finalData.days)          ? finalData.days[0]          : finalData.days;
-    const people        = Array.isArray(finalData.people)        ? finalData.people.join(", ") : finalData.people;
-    const budget        = Array.isArray(finalData.budget)        ? finalData.budget[0]         : finalData.budget;
-    const interests     = Array.isArray(finalData.interests)     ? finalData.interests.join(", ") : finalData.interests;
-    const accommodation = Array.isArray(finalData.accommodation) ? finalData.accommodation[0]  : finalData.accommodation;
+    const days          = Array.isArray(finalData.days)          ? finalData.days[0]           : finalData.days;
+    const people        = Array.isArray(finalData.people)        ? finalData.people.join(", ")  : finalData.people;
+    const budget        = Array.isArray(finalData.budget)        ? finalData.budget[0]          : finalData.budget;
+    const interests     = Array.isArray(finalData.interests)     ? finalData.interests.join(", "): finalData.interests;
+    const accommodation = Array.isArray(finalData.accommodation) ? finalData.accommodation[0]   : finalData.accommodation;
 
     const userSummary = `Please plan my India trip with these details:\n📍 Destination: ${finalData.destination}\n📅 Duration: ${days}\n👥 Travellers: ${people}\n💰 Budget: ${budget}\n🎨 Interests: ${interests}\n🏨 Accommodation: ${accommodation}`;
 
@@ -408,7 +429,11 @@ export default function AiTripPlanner() {
     setMessages(history);
     setLoading(true);
     try {
-      const reply = await callAI(history.map(m => ({ role: m.role, content: m.content })), SYSTEM_FOLLOWUP, 1500);
+      const reply = await callAI(
+        history.map(m => ({ role: m.role, content: m.content })),
+        SYSTEM_FOLLOWUP,
+        1500
+      );
       setMessages(prev => [...prev, { role: "assistant", content: reply }]);
     } catch (e) {
       setError(`⚠️ ${e.message}`);
@@ -467,277 +492,217 @@ export default function AiTripPlanner() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600;700&display=swap');
         @keyframes dotBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
-        @keyframes panelIn { from{opacity:0;transform:translateY(20px) scale(0.95)} to{opacity:1;transform:translateY(0) scale(1)} }
-        @keyframes fabPulse {
-          0%,100%{box-shadow:0 6px 24px rgba(212,98,42,0.55),0 0 0 0 rgba(244,168,40,0.45)}
-          50%{box-shadow:0 6px 24px rgba(212,98,42,0.55),0 0 0 14px rgba(244,168,40,0)}
-        }
-        @keyframes floatUp { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
-        @keyframes shimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
-        @keyframes heroReveal { from{opacity:0;transform:scaleY(0.88)} to{opacity:1;transform:scaleY(1)} }
-        @keyframes heroKen { 0%{transform:scale(1.0)} 100%{transform:scale(1.06)} }
-        @keyframes badgeFade { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
         @keyframes fadeSlideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes errorShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
-
-        .india-fab{transition:transform .2s}
-        .india-fab:hover{transform:scale(1.09)!important}
-        .india-fab:active{transform:scale(0.95)!important}
-        .india-send:hover:not(:disabled){background:#b84e1a!important}
-        .msg-scroll::-webkit-scrollbar{width:4px}
-        .msg-scroll::-webkit-scrollbar-thumb{background:rgba(244,168,40,0.3);border-radius:2px}
-        .india-textarea{caret-color:#f4a828}
-        .india-textarea:focus{outline:none}
-        .restart-btn:hover{background:rgba(244,168,40,0.15)!important;color:#f4a828!important}
-        .followup-pill:hover{background:rgba(244,168,40,0.15)!important;border-color:rgba(244,168,40,0.5)!important;color:#f4d060!important}
-        .retry-btn:hover{background:rgba(212,98,42,0.4)!important}
+        @keyframes pulseGlow { 0%,100%{box-shadow:0 0 0 0 rgba(212,98,42,0.5)} 50%{box-shadow:0 0 0 10px rgba(212,98,42,0)} }
+        .planner-scroll::-webkit-scrollbar{width:3px}
+        .planner-scroll::-webkit-scrollbar-track{background:transparent}
+        .planner-scroll::-webkit-scrollbar-thumb{background:rgba(244,168,40,0.3);border-radius:4px}
       `}</style>
 
-      {/* FAB */}
-      <button className="india-fab" onClick={() => setOpen(o => !o)} title="AI India Trip Planner" style={{
-        position: "fixed", bottom: 28, right: 28,
-        width: 62, height: 62, borderRadius: "50%",
-        background: "linear-gradient(135deg,#f4a828 0%,#d4622a 55%,#8b1a0a 100%)",
-        color: "#fff", border: "2.5px solid rgba(255,220,140,0.5)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        cursor: "pointer", zIndex: 9999, padding: 0,
-        animation: open ? "none" : "fabPulse 2.8s ease-in-out infinite,floatUp 3.5s ease-in-out infinite",
-      }}>
-        {open ? <CloseSVG /> : <CompassSVG />}
-      </button>
+      {/* Floating Button */}
+      {!open && (
+        <button onClick={() => setOpen(true)} style={{
+          position: "fixed", bottom: 28, right: 28, zIndex: 9999,
+          width: 58, height: 58, borderRadius: "50%", border: "none", cursor: "pointer",
+          background: "linear-gradient(135deg,#f4a828,#d4622a,#7b1d0e)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: "0 6px 28px rgba(212,98,42,0.55)",
+          animation: "pulseGlow 2.5s infinite",
+          color: "#fff",
+        }}>
+          <CompassSVG />
+        </button>
+      )}
 
-      {/* Panel */}
+      {/* Chat Panel */}
       {open && (
         <div style={{
-          position: "fixed", bottom: 102, right: 28,
-          width: 375, height: 600, borderRadius: 22,
-          background: "linear-gradient(170deg,#180600 0%,#2d0f04 45%,#180800 100%)",
-          border: "1px solid rgba(244,168,40,0.28)",
-          boxShadow: "0 30px 70px rgba(0,0,0,0.75),inset 0 1px 0 rgba(255,200,100,0.08)",
+          position: "fixed", bottom: 24, right: 24, zIndex: 9999,
+          width: 385, maxHeight: "88vh",
+          background: "linear-gradient(160deg,#1a0800 0%,#2d0f02 40%,#1a0500 100%)",
+          borderRadius: 22,
+          border: "1px solid rgba(244,168,40,0.2)",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(244,168,40,0.08)",
           display: "flex", flexDirection: "column",
-          zIndex: 9998, animation: "panelIn .32s ease",
-          overflow: "hidden", fontFamily: "'Noto Sans',sans-serif",
+          fontFamily: "'Noto Sans', sans-serif",
+          animation: "fadeSlideUp .3s ease",
+          overflow: "hidden",
         }}>
 
           {/* Header */}
           <div style={{
-            padding: "13px 16px 10px",
-            borderBottom: "1px solid rgba(244,168,40,0.18)",
-            background: "linear-gradient(135deg,rgba(244,168,40,0.13),rgba(212,98,42,0.06))",
-            flexShrink: 0, position: "relative", overflow: "hidden",
+            padding: "14px 16px 12px",
+            background: "linear-gradient(135deg,rgba(244,168,40,0.12),rgba(212,98,42,0.08))",
+            borderBottom: "1px solid rgba(244,168,40,0.12)",
+            display: "flex", alignItems: "center", gap: 10, flexShrink: 0,
           }}>
-            {[...Array(7)].map((_,i) => (
-              <div key={i} style={{
-                position: "absolute", width: 4, height: 4, borderRadius: "50%",
-                background: i%2===0 ? "rgba(244,168,40,0.5)" : "rgba(212,98,42,0.4)",
-                top: 5+(i%3)*10, right: 6+i*20,
-              }}/>
-            ))}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{
-                width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-                background: "linear-gradient(135deg,#f4a828,#d4622a)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 20, boxShadow: "0 4px 16px rgba(212,98,42,0.55)",
-              }}>🕌</div>
-              <div style={{ flex: 1 }}>
-                <div style={{
-                  fontFamily: "'Playfair Display',serif",
-                  fontSize: 16, fontWeight: 700,
-                  background: "linear-gradient(90deg,#f4d060,#f4a828,#e05a1a,#f4a828,#f4d060)",
-                  backgroundSize: "300% auto",
-                  WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-                  animation: "shimmer 4s linear infinite",
-                }}>Incredible India Planner</div>
-                <div style={{ fontSize: 11, color: "#c8864a", marginTop: 2, display: "flex", alignItems: "center", gap: 5 }}>
-                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80" }}/>
-                  {phase === "onboarding"
-                    ? `Step ${stepIdx + 1} of ${STEPS.length} — building your trip`
-                    : "Your personalised India itinerary 🙏"}
-                </div>
+            <div style={{
+              width: 38, height: 38, borderRadius: 12, flexShrink: 0,
+              background: "linear-gradient(135deg,#f4a828,#d4622a)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 20, boxShadow: "0 4px 14px rgba(212,98,42,0.5)",
+            }}>🏯</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14.5, fontWeight: 700, color: "#f4d060", fontFamily: "'Playfair Display', serif" }}>
+                Incredible India Planner
               </div>
+              <div style={{ fontSize: 11, color: "#8a5030", marginTop: 1 }}>
+                <span style={{ color: "#4caf50", fontSize: 9 }}>●</span> Your personalised India itinerary 🙏
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 6 }}>
               {phase === "chat" && (
-                <button className="restart-btn" onClick={resetAll} style={{
-                  background: "rgba(244,168,40,0.08)", border: "1px solid rgba(244,168,40,0.2)",
-                  borderRadius: 8, padding: "4px 8px", color: "#8a5a30", fontSize: 11,
-                  cursor: "pointer", transition: "all .2s",
-                  fontFamily: "'Noto Sans',sans-serif", flexShrink: 0,
+                <button onClick={resetAll} title="New trip" style={{
+                  background: "rgba(244,168,40,0.1)", border: "1px solid rgba(244,168,40,0.2)",
+                  borderRadius: 8, padding: "5px 9px", color: "#f4a828",
+                  fontSize: 11, cursor: "pointer", fontFamily: "'Noto Sans', sans-serif",
                 }}>🔄 New</button>
               )}
-            </div>
-            <div style={{ display: "flex", height: 3, borderRadius: 3, overflow: "hidden", marginTop: 9, gap: 1 }}>
-              <div style={{ flex: 1, background: "#FF9933" }}/>
-              <div style={{ flex: 1, background: "#f0f0f0" }}/>
-              <div style={{ flex: 1, background: "#138808" }}/>
+              <button onClick={() => setOpen(false)} style={{
+                background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: 8, padding: "5px 8px", color: "#7a5030",
+                cursor: "pointer", display: "flex", alignItems: "center",
+              }}><CloseSVG /></button>
             </div>
           </div>
 
           {/* Error Banner */}
           {error && (
             <div style={{
-              background: "rgba(220,50,30,0.15)", border: "1px solid rgba(220,50,30,0.35)",
-              padding: "7px 13px", display: "flex", alignItems: "center", justifyContent: "space-between",
-              flexShrink: 0, animation: "errorShake .3s ease",
+              padding: "8px 14px", flexShrink: 0,
+              background: "rgba(180,30,10,0.18)",
+              borderBottom: "1px solid rgba(200,50,20,0.25)",
+              display: "flex", alignItems: "center", justifyContent: "space-between",
             }}>
-              <span style={{ fontSize: 11.5, color: "#ff9980" }}>{error}</span>
-              <button className="retry-btn" onClick={retryLast} style={{
-                background: "rgba(212,98,42,0.25)", border: "1px solid rgba(212,98,42,0.5)",
-                borderRadius: 7, padding: "3px 10px", color: "#f4a828", fontSize: 11,
-                cursor: "pointer", fontFamily: "'Noto Sans',sans-serif", transition: "all .2s",
+              <span style={{ fontSize: 12, color: "#f4a060" }}>{error}</span>
+              <button onClick={retryLast} style={{
+                background: "rgba(212,98,42,0.3)", border: "1px solid rgba(212,98,42,0.5)",
+                borderRadius: 7, padding: "3px 10px", color: "#f4d060",
+                fontSize: 11, cursor: "pointer", fontFamily: "'Noto Sans', sans-serif",
               }}>🔄 Retry</button>
             </div>
           )}
 
-          {/* Hero Image */}
-          {showHero && phase === "onboarding" && (
-            <div style={{ height: 120, flexShrink: 0, position: "relative", overflow: "hidden", animation: "heroReveal .5s ease" }}>
-              <img
-                src="https://images.unsplash.com/photo-1488085061387-422e29b40080?w=800&q=80"
-                alt="Incredible India"
-                style={{
-                  width: "100%", height: "100%", objectFit: "cover", display: "block",
-                  transformOrigin: "center center",
-                  animation: "heroKen 12s ease-in-out infinite alternate",
-                }}
-                loading="lazy"
-              />
+          {/* Body */}
+          <div className="planner-scroll" style={{
+            flex: 1, overflowY: "auto", padding: "14px 14px 6px",
+          }}>
+            {/* Hero */}
+            {showHero && phase === "onboarding" && (
               <div style={{
-                position: "absolute", inset: 0,
-                background: "linear-gradient(to bottom,rgba(0,0,0,0.35) 0%,rgba(0,0,0,0.78) 100%)",
-              }}/>
-              <div style={{
-                position: "absolute", bottom: 10, left: 13,
-                fontFamily: "'Playfair Display',serif",
-                fontSize: 15, fontWeight: 700, color: "#fff",
-                textShadow: "0 2px 12px rgba(0,0,0,0.8)",
-                animation: "badgeFade .7s .2s both ease", lineHeight: 1.25,
+                textAlign: "center", padding: "10px 0 14px",
+                animation: "fadeSlideUp .5s ease",
               }}>
-                Let's plan your <span style={{ color: "#f4a828" }}>perfect India trip</span> ✨
+                <div style={{ fontSize: 38, marginBottom: 6 }}>🇮🇳</div>
+                <div style={{
+                  fontSize: 17, fontWeight: 700, color: "#f4d060",
+                  fontFamily: "'Playfair Display', serif", marginBottom: 5,
+                }}>Plan Your Dream India Trip</div>
+                <div style={{ fontSize: 12, color: "#7a5030", lineHeight: 1.5 }}>
+                  Answer 6 quick questions and get a<br/>hyper-personalised itinerary ✨
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Onboarding */}
-          {phase === "onboarding" && (
-            <div className="msg-scroll" style={{ flex: 1, overflowY: "auto", padding: "14px 15px" }}>
+            {/* Onboarding */}
+            {phase === "onboarding" && (
               <OnboardingStep
-                key={stepIdx}
                 step={STEPS[stepIdx]}
-                value={formData[STEPS[stepIdx].id] || (STEPS[stepIdx].multi ? [] : "")}
+                value={formData[STEPS[stepIdx].id]}
                 onChange={val => setFormData(prev => ({ ...prev, [STEPS[stepIdx].id]: val }))}
                 onNext={handleStepNext}
-                onBack={() => setStepIdx(i => Math.max(0, i - 1))}
+                onBack={() => setStepIdx(i => i - 1)}
                 stepIdx={stepIdx}
                 total={STEPS.length}
               />
-              <div ref={bottomRef}/>
-            </div>
-          )}
+            )}
 
-          {/* Chat */}
-          {phase === "chat" && (
-            <>
-              <div className="msg-scroll" style={{ flex: 1, overflowY: "auto", padding: "12px 13px 6px" }}>
+            {/* Chat */}
+            {phase === "chat" && (
+              <>
                 <SummaryCard data={formData} onEdit={resetAll} />
-
-                {messages.filter(m => m.role === "assistant").length === 0 && !loading && (
-                  <div style={{ textAlign: "center", color: "#5a3010", fontSize: 12, padding: "20px 0" }}>
-                    ✨ Building your personalised itinerary…
-                  </div>
-                )}
-
-                {messages.map((m, i) => m.role === "assistant" && <Bubble key={i} msg={m} />)}
-
+                {messages.map((msg, i) => <Bubble key={i} msg={msg} />)}
                 {loading && (
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                     <div style={{
-                      width: 30, height: 30, borderRadius: "50%", flexShrink: 0,
+                      width: 30, height: 30, borderRadius: "50%",
                       background: "linear-gradient(135deg,#f4a828,#d4622a)",
                       display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15,
                     }}>🪔</div>
                     <div style={{
-                      padding: "9px 14px", borderRadius: "16px 16px 16px 3px",
-                      background: "rgba(255,245,235,0.09)", border: "1px solid rgba(255,210,150,0.13)",
+                      padding: "9px 14px",
+                      background: "rgba(255,245,235,0.07)",
+                      border: "1px solid rgba(255,210,150,0.12)",
+                      borderRadius: "16px 16px 16px 3px",
                     }}><Dots /></div>
                   </div>
                 )}
+                <div ref={bottomRef} />
+              </>
+            )}
+          </div>
 
-                {messages.filter(m => m.role === "assistant").length === 1 && !loading && (
-                  <div style={{ marginTop: 6, marginBottom: 4 }}>
-                    <div style={{ fontSize: 11, color: "#6a4020", marginBottom: 6 }}>💬 Ask a follow-up question:</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                      {["Best restaurants? 🍛", "How to get around? 🚂", "What to pack? 🎒", "Hidden gems? 💎"].map((s, i) => (
-                        <button key={i} className="followup-pill" onClick={() => {
-                          setInput(s); setTimeout(() => inputRef.current?.focus(), 50);
-                        }} style={{
-                          background: "rgba(244,168,40,0.07)", border: "1px solid rgba(244,168,40,0.22)",
-                          borderRadius: 20, color: "#a07050", fontSize: 11.5,
-                          padding: "4px 10px", cursor: "pointer",
-                          fontFamily: "'Noto Sans',sans-serif", transition: "all .18s",
-                        }}>{s}</button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                <div ref={bottomRef}/>
+          {/* Follow-up chips */}
+          {phase === "chat" && !loading && messages.length > 1 && (
+            <div style={{
+              padding: "6px 14px 4px", flexShrink: 0,
+              borderTop: "1px solid rgba(244,168,40,0.08)",
+            }}>
+              <div style={{ fontSize: 10.5, color: "#6a4020", marginBottom: 5 }}>💬 Ask a follow-up question:</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                {["Best restaurants? 🍛", "How to get around? 🚗", "What to pack? 🎒", "Hidden gems? 💎"].map(q => (
+                  <button key={q} onClick={() => { setInput(q); setTimeout(() => inputRef.current?.focus(), 100); }} style={{
+                    background: "rgba(244,168,40,0.07)", border: "1px solid rgba(244,168,40,0.18)",
+                    borderRadius: 14, padding: "4px 10px", color: "#c8864a",
+                    fontSize: 11.5, cursor: "pointer", fontFamily: "'Noto Sans', sans-serif",
+                  }}>{q}</button>
+                ))}
               </div>
+            </div>
+          )}
 
-              {/* Input */}
+          {/* Input */}
+          {phase === "chat" && (
+            <div style={{
+              padding: "10px 12px 14px", flexShrink: 0,
+              borderTop: "1px solid rgba(244,168,40,0.1)",
+            }}>
               <div style={{
-                padding: "9px 13px 12px",
-                borderTop: "1px solid rgba(244,168,40,0.14)",
-                background: "rgba(0,0,0,0.3)", flexShrink: 0,
+                display: "flex", alignItems: "center", gap: 8,
+                background: "rgba(255,255,255,0.045)",
+                border: "1px solid rgba(244,168,40,0.25)",
+                borderRadius: 14, padding: "8px 10px 8px 14px",
               }}>
-                <div style={{
-                  display: "flex", gap: 8, alignItems: "flex-end",
-                  background: "rgba(255,255,255,0.045)",
-                  border: "1px solid rgba(244,168,40,0.22)",
-                  borderRadius: 14, padding: "7px 7px 7px 12px",
-                }}>
-                  <textarea
-                    ref={inputRef}
-                    className="india-textarea"
-                    value={input}
-                    onChange={e => setInput(e.target.value)}
-                    onKeyDown={handleKey}
-                    placeholder="Ask anything about your trip… 🇮🇳"
-                    rows={1}
-                    style={{
-                      flex: 1, background: "transparent", border: "none", outline: "none",
-                      color: "#f5e6d0", fontSize: 13.5,
-                      fontFamily: "'Noto Sans',sans-serif",
-                      resize: "none", maxHeight: 80, lineHeight: 1.5,
-                    }}
-                    onInput={e => {
-                      e.target.style.height = "auto";
-                      e.target.style.height = Math.min(e.target.scrollHeight, 80) + "px";
-                    }}
-                  />
-                  <button
-                    className="india-send"
-                    onClick={sendFollowUp}
-                    disabled={!input.trim() || loading}
-                    style={{
-                      width: 34, height: 34, borderRadius: 10,
-                      background: input.trim() && !loading ? "#d4622a" : "rgba(212,98,42,0.18)",
-                      border: "none",
-                      color: input.trim() && !loading ? "#fff" : "#7a4020",
-                      cursor: input.trim() && !loading ? "pointer" : "default",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      flexShrink: 0, transition: "all .2s",
-                    }}
-                  ><SendSVG /></button>
-                </div>
-                <div style={{ textAlign: "center", marginTop: 6, fontSize: 10, color: "#4a2808", letterSpacing: "0.03em" }}>
-                  🇮🇳 · Press Enter to send
-                </div>
+                <input
+                  ref={inputRef}
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={handleKey}
+                  placeholder="Ask anything about your trip… 🇮🇳"
+                  disabled={loading}
+                  style={{
+                    flex: 1, background: "transparent", border: "none", outline: "none",
+                    color: "#f5e6d0", fontSize: 13,
+                    fontFamily: "'Noto Sans', sans-serif", caretColor: "#f4a828",
+                  }}
+                />
+                <button onClick={sendFollowUp} disabled={!input.trim() || loading} style={{
+                  width: 32, height: 32, borderRadius: 10, border: "none",
+                  background: input.trim() && !loading ? "linear-gradient(135deg,#f4a828,#d4622a)" : "rgba(212,98,42,0.15)",
+                  color: input.trim() && !loading ? "#fff" : "#5a3010",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: input.trim() && !loading ? "pointer" : "default",
+                  flexShrink: 0, transition: "all .2s",
+                  boxShadow: input.trim() && !loading ? "0 3px 12px rgba(212,98,42,0.4)" : "none",
+                }}><SendSVG /></button>
               </div>
-            </>
+              <div style={{ textAlign: "center", fontSize: 10, color: "#4a2510", marginTop: 6 }}>
+                🇮🇳 Press Enter to send
+              </div>
+            </div>
           )}
         </div>
       )}
     </>
   );
 }
-
-                 

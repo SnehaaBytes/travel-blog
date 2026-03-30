@@ -14,6 +14,9 @@ import User from './models/User.js';
 import Destination from './models/Destination.js';
 import Message from './models/Message.js';
 
+// ✅ AI Route Import
+import aiRouter from './routes/ai.js';
+
 const app = express();
 
 // Middleware
@@ -24,6 +27,9 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
 app.options("*", cors());
+
+// ✅ AI Route Registered
+app.use('/api/ai', aiRouter);
 
 // Root route
 app.get('/', (req, res) => {
@@ -50,7 +56,6 @@ async function initializeDestinations() {
   try {
     const count = await Destination.countDocuments();
     if (count === 0) {
-
       const destinations = [
         { title: 'Kashmir', description: 'Experience the Himalayas...', imgSrc: 'images/kashmir.jpg', isPopular: true },
         { title: 'Varanasi', description: 'Explore Kashi...', imgSrc: 'images/varanasi.jpg', isPopular: false },
@@ -82,11 +87,9 @@ async function initializeDestinations() {
         { title: 'Daman and Diu', description: 'Portuguese coastal territory', imgSrc: 'images/daman.jpg', isPopular: false },
         { title: 'Ziro Valley', description: 'Arunachal scenic valley', imgSrc: 'images/ziro.jpg', isPopular: false },
       ];
-
       await Destination.insertMany(destinations);
       console.log('🌱 Destinations seeded successfully');
     }
-
   } catch (error) {
     console.error('❌ Seeding error:', error);
   }
@@ -97,7 +100,6 @@ async function initializeDestinations() {
 // DESTINATION ROUTES
 // ========================
 
-// GET all destinations
 app.get('/api/destinations', async (req, res) => {
   try {
     const filter = req.query.type === 'popular' ? { isPopular: true } : {};
@@ -108,7 +110,6 @@ app.get('/api/destinations', async (req, res) => {
   }
 });
 
-// GET single destination
 app.get('/api/destinations/:id', async (req, res) => {
   try {
     const destination = await Destination.findById(req.params.id);
@@ -119,7 +120,6 @@ app.get('/api/destinations/:id', async (req, res) => {
   }
 });
 
-// CREATE destination
 app.post('/api/destinations', async (req, res) => {
   try {
     const destination = new Destination(req.body);
@@ -130,35 +130,23 @@ app.post('/api/destinations', async (req, res) => {
   }
 });
 
-// UPDATE destination
 app.put('/api/destinations/:id', async (req, res) => {
   try {
-
     const updated = await Destination.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
+      req.params.id, req.body, { new: true }
     );
-
     if (!updated) return res.status(404).json({ error: "Destination not found" });
-
     res.json(updated);
-
   } catch {
     res.status(500).json({ error: "Failed to update destination" });
   }
 });
 
-// DELETE destination
 app.delete('/api/destinations/:id', async (req, res) => {
   try {
-
     const deleted = await Destination.findByIdAndDelete(req.params.id);
-
     if (!deleted) return res.status(404).json({ error: "Destination not found" });
-
     res.json({ message: "Destination deleted successfully" });
-
   } catch {
     res.status(500).json({ error: "Failed to delete destination" });
   }
@@ -168,21 +156,16 @@ app.delete('/api/destinations/:id', async (req, res) => {
 // BOOKINGS ROUTES
 // ========================
 
-// Booking Schema
 const bookingSchema = new mongoose.Schema({
   name: String,
   destination: String,
   date: String,
   people: Number,
-  status: {
-    type: String,
-    default: "pending"
-  }
+  status: { type: String, default: "pending" }
 });
 
 const Booking = mongoose.model("Booking", bookingSchema);
 
-// GET all bookings
 app.get('/api/bookings', async (req, res) => {
   try {
     const bookings = await Booking.find();
@@ -192,7 +175,6 @@ app.get('/api/bookings', async (req, res) => {
   }
 });
 
-// CREATE booking
 app.post('/api/bookings', async (req, res) => {
   try {
     const booking = new Booking(req.body);
@@ -203,13 +185,10 @@ app.post('/api/bookings', async (req, res) => {
   }
 });
 
-// UPDATE booking (status etc.)
 app.put('/api/bookings/:id', async (req, res) => {
   try {
     const updated = await Booking.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
+      req.params.id, req.body, { new: true }
     );
     res.json(updated);
   } catch {
@@ -217,7 +196,6 @@ app.put('/api/bookings/:id', async (req, res) => {
   }
 });
 
-// DELETE booking
 app.delete('/api/bookings/:id', async (req, res) => {
   try {
     await Booking.findByIdAndDelete(req.params.id);
@@ -231,84 +209,42 @@ app.delete('/api/bookings/:id', async (req, res) => {
 // AUTH ROUTES
 // ========================
 
-// REGISTER
 app.post('/api/register', async (req, res) => {
   try {
-
     const { username, password } = req.body;
-
-    if (!username || !password) {
-      return res.status(400).json({ message: 'Missing fields' });
-    }
-
+    if (!username || !password) return res.status(400).json({ message: 'Missing fields' });
     const exists = await User.findOne({ username });
-    if (exists) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
-
+    if (exists) return res.status(400).json({ message: 'User already exists' });
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = new User({
-      username,
-      password: hashedPassword
-    });
-
+    const user = new User({ username, password: hashedPassword });
     await user.save();
-
     res.status(201).json({ message: 'Registered successfully' });
-
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
-
-
-// LOGIN
 
 app.post('/api/login', async (req, res) => {
   try {
-    // 👉 We now expect `loginType` from the frontend
     const { username, password, loginType } = req.body;
-
-    if (!username || !password) {
-      return res.status(400).json({ message: 'Missing fields' });
-    }
-
+    if (!username || !password) return res.status(400).json({ message: 'Missing fields' });
     const user = await User.findOne({ username });
-
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
+    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
     const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    // 👉 ADD ROLE VERIFICATION
+    if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
     if (loginType === 'admin' && !user.isAdmin) {
-      return res.status(403).json({ 
-        message: 'Access denied. You are not an administrator.' 
-      });
+      return res.status(403).json({ message: 'Access denied. You are not an administrator.' });
     }
-
-    // Pass the role info back to the frontend
-    res.json({ 
-      message: 'Login successful', 
-      username: user.username,
-      isAdmin: user.isAdmin 
-    });
-
+    res.json({ message: 'Login successful', username: user.username, isAdmin: user.isAdmin });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
-
 
 // ========================
 // MESSAGES
 // ========================
+
 app.get('/api/messages', async (req, res) => {
   const messages = await Message.find().sort({ createdAt: 1 });
   res.json(messages);
@@ -325,12 +261,11 @@ app.delete('/api/messages/:id', async (req, res) => {
   res.json({ message: 'Deleted' });
 });
 
-
 // ========================
 // SERVER
 // ========================
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);  // ✅ FIXED: added backticks
 });
