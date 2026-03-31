@@ -18,7 +18,8 @@
     "dotenv": "^17.3.1",
     "express": "^4.22.1",
     "mongodb": "^7.1.1",
-    "mongoose": "^8.18.1"
+    "mongoose": "^8.18.1",
+    "razorpay": "^2.9.6"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

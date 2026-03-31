@@ -1,3 +1,5 @@
+import paymentRoutes from "./routes/payment.js";
+
 // server.js
 
 import express from 'express';
@@ -30,6 +32,7 @@ app.options("*", cors());
 
 // ✅ AI Route Registered
 app.use('/api/ai', aiRouter);
+app.use("/api/payment", paymentRoutes);
 
 // Root route
 app.get('/', (req, res) => {

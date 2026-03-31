@@ -18,7 +18,7 @@ router.post("/chat", async (req, res) => {
     console.log("Using API Key:", apiKey ? apiKey.slice(0, 8) + "..." : "MISSING");
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-latest" });
 
     const result = await model.generateContent(
       messages[messages.length - 1].content
