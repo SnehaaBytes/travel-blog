@@ -24,6 +24,7 @@ import ManageDestinations from "./admin/pages/ManageDestinations";
 import Bookings from "./admin/pages/Bookings";
 import AdminLayout from "./admin/AdminLayout";
 import BookingPage from "./pages/BookingPage";
+import ManageReviews from "./admin/pages/ManageReviews";
 import PaymentPage from "./pages/PaymentPage";
 import Success from "./pages/Success";
 
@@ -59,6 +60,8 @@ function App() {
                 <Route path="/book/:id" element={<BookingPage />} />
                 <Route path="/payment" element={<PaymentPage />} />
                 <Route path="/success" element={<Success />} />
+                 <Route path="/review" element={<Review />} />
+
               </Route>
 
               {/* AUTH ROUTES */}
@@ -78,6 +81,7 @@ function App() {
                 <Route index element={<Dashboard />} />
                 <Route path="destinations" element={<ManageDestinations />} />
                 <Route path="bookings" element={<Bookings />} />
+                 <Route path="reviews" element={<ManageReviews />} />  
               </Route>
 
             </Routes>

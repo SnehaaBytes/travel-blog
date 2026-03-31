@@ -1,10 +1,9 @@
+import { useAuth } from '../../services/AuthContext';
 import AiTripPlanner from "../AiTripPlanner";
-
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios'; // We imported axios here for your database fetch
+import axios from 'axios'; 
 import { destinationService } from '../../services/api';
-import Modal from '../common/Modal';
 import Loading from '../common/Loading';
 import ErrorMessage from '../common/ErrorMessage';
 import { fixImagePath, truncateString } from '../../utils/helpers';
@@ -16,13 +15,15 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('popular');
+  const { user } = useAuth();
   
   // State for "Share Experience" Form
   const [reviewForm, setReviewForm] = useState({
     name: '',
     destination: '',
     rating: 5,
-    review: ''
+    review: '',
+    blogUrl: ''
   });
 
   const [testimonials, setTestimonials] = useState([
@@ -77,23 +78,44 @@ const Home = () => {
     testimonialsRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleReviewSubmit = (e) => {
+  const handleReviewSubmit = async (e) => {
     e.preventDefault();
     if (!reviewForm.name || !reviewForm.destination || !reviewForm.review) return;
     
-    const newTestimonial = {
-      id: Date.now(),
+    // --- SEND TO DATABASE ---
+    const newGlobalReview = {
       name: reviewForm.name,
-      location: reviewForm.destination,
-      image: `https://ui-avatars.com/api/?name=${encodeURIComponent(reviewForm.name)}&background=random`,
-      text: reviewForm.review,
-      rating: parseInt(reviewForm.rating)
+      destination: reviewForm.destination, // Let's send destination to DB
+      rating: parseInt(reviewForm.rating) || 5,
+      comment: reviewForm.review, 
+      blogUrl: reviewForm.blogUrl 
     };
-    
-    setTestimonials([newTestimonial, ...testimonials.slice(0, 2)]);
-    setReviewForm({ name: '', destination: '', rating: 5, review: '' });
-    alert("Thank you! Your experience has been successfully shared.");
+
+    try {
+      // THIS is the magic line that saves it to your MongoDB!
+      await axios.post('http://localhost:5000/api/reviews', newGlobalReview);
+      
+      // Update Home Page Testimonials visually below the hero
+      const newTestimonial = {
+        id: Date.now(),
+        name: reviewForm.name,
+        location: reviewForm.destination,
+        image: `https://ui-avatars.com/api/?name=${encodeURIComponent(reviewForm.name)}&background=random`,
+        text: reviewForm.review,
+        rating: parseInt(reviewForm.rating) || 5
+      };
+      setTestimonials([newTestimonial, ...testimonials.slice(0, 2)]);
+      
+      // Clear the inputs
+      setReviewForm({ name: '', destination: '', rating: 5, review: '', blogUrl: '' });
+      
+      alert("Success! Your review has been saved to the Database and sent to the Admin Panel!");
+    } catch (err) {
+      console.error(err);
+      alert("Uh oh! Failed to save review to the database. Make sure your backend node server isn't crashing.");
+    }
   };
+
 
   const filteredDestinations = useMemo(() => {
     if (activeTab === 'popular') return destinations.slice(0, 4);
@@ -284,75 +306,123 @@ const Home = () => {
               <i className="fas fa-heart text-5xl mb-6 text-blue-500 animate-pulse"></i>
               <h2 className="text-3xl md:text-5xl font-extrabold mb-4 text-slate-900 dark:text-white">Share Your Experience</h2>
               <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mx-auto">
-                Loved your trip? Share your story with other travelers by submitting a review below!
+                Loved your trip? Share your story, blog, or pictures with other travelers by submitting a review below!
               </p>
             </div>
             
-            <form onSubmit={handleReviewSubmit} className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-              <div className="col-span-1">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Full Name</label>
-                <input
-                  type="text"
-                  required
-                  value={reviewForm.name}
-                  onChange={(e) => setReviewForm({...reviewForm, name: e.target.value})}
-                  placeholder="e.g. Rahul Sharma"
-                  className="w-full px-5 py-3.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                />
-              </div>
+            {/* 🛑 CONDITIONAL RENDERING: CHECK IF USER EXISTS 🛑 */}
+            {user ? (
+              
+              <form onSubmit={handleReviewSubmit} className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                <div className="col-span-1">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={reviewForm.name}
+                    onChange={(e) => setReviewForm({...reviewForm, name: e.target.value})}
+                    placeholder="e.g. Rahul Sharma"
+                    className="w-full px-5 py-3.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                  />
+                </div>
 
-              <div className="col-span-1">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Select Destination</label>
-                <select
-                  required
-                  value={reviewForm.destination}
-                  onChange={(e) => setReviewForm({...reviewForm, destination: e.target.value})}
-                  className="w-full px-5 py-3.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors appearance-none"
-                >
-                  <option value="" disabled>Where did you go?</option>
-                  {destinations.map((dest) => (
-                    <option key={dest._id || dest.title} value={dest.title}>{dest.title}</option>
-                  ))}
-                </select>
-              </div>
+                <div className="col-span-1">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Select Destination</label>
+                  <select
+                    required
+                    value={reviewForm.destination}
+                    onChange={(e) => setReviewForm({...reviewForm, destination: e.target.value})}
+                    className="w-full px-5 py-3.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors appearance-none"
+                  >
+                    <option value="" disabled>Where did you go?</option>
+                    {destinations && destinations.map((dest) => (
+                      <option key={dest._id || dest.title} value={dest.title}>{dest.title}</option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="col-span-1 md:col-span-2">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Rate Your Experience</label>
-                <div className="flex gap-2 text-2xl">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      type="button"
-                      key={star}
-                      className={`focus:outline-none transition-colors ${reviewForm.rating >= star ? 'text-amber-500' : 'text-slate-300 dark:text-slate-600'}`}
-                      onClick={() => setReviewForm({...reviewForm, rating: star})}
-                    >
-                      <i className="fas fa-star"></i>
-                    </button>
-                  ))}
+                <div className="col-span-1 md:col-span-2">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Rate Your Experience</label>
+                  <div className="flex gap-2 text-2xl">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        type="button"
+                        key={star}
+                        className={`focus:outline-none transition-colors ${reviewForm.rating >= star ? 'text-amber-500' : 'text-slate-300 dark:text-slate-600'}`}
+                        onClick={() => setReviewForm({...reviewForm, rating: star})}
+                      >
+                        <i className="fas fa-star"></i>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="col-span-1 md:col-span-2">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Write Your Review or Short Story</label>
+                  <textarea
+                    required
+                    rows="4"
+                    value={reviewForm.review}
+                    onChange={(e) => setReviewForm({...reviewForm, review: e.target.value})}
+                    placeholder="Tell us what you loved about this place..."
+                    className="w-full px-5 py-4 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none"
+                  ></textarea>
+                </div>
+
+                <div className="col-span-1 md:col-span-2">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Link your Travel Blog (Optional)</label>
+                  <input
+                    type="url"
+                    value={reviewForm.blogUrl || ''}
+                    onChange={(e) => setReviewForm({...reviewForm, blogUrl: e.target.value})}
+                    placeholder="https://yourblog.com/my-trip"
+                    className="w-full px-5 py-3.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                  />
+                </div>
+
+                <div className="col-span-1 md:col-span-2">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Upload Pictures (Optional)</label>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => setReviewForm({...reviewForm, pictures: e.target.files})}
+                    className="w-full px-5 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-500 dark:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-slate-700 dark:file:text-slate-200 dark:hover:file:bg-slate-600 file:transition-colors cursor-pointer"
+                  />
+                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">You can select multiple photos in PNG, JPG, or GIF format.</p>
+                </div>
+
+                <div className="col-span-1 md:col-span-2 mt-4 text-center">
+                  <button 
+                    type="submit"
+                    className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transform transition-all hover:-translate-y-1"
+                  >
+                    Submit Review
+                  </button>
+                </div>
+              </form>
+
+            ) : (
+
+              // 🛑 WHAT THEY SEE IF THEY ARE NOT LOGGED IN 🛑
+              <div className="relative z-10 text-center bg-blue-50/50 dark:bg-slate-800/50 p-6 md:p-10 rounded-3xl border border-blue-100 dark:border-slate-700 max-w-2xl mx-auto shadow-inner">
+                <i className="fas fa-lock text-5xl text-blue-400 dark:text-slate-500 mb-6 drop-shadow-sm"></i>
+                <h3 className="text-3xl font-extrabold text-slate-800 dark:text-white mb-3 tracking-tight">Login Required</h3>
+                <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-md mx-auto text-base md:text-lg leading-relaxed">
+                  You must create an account or log in to share your amazing experiences and photos with the travel community!
+                </p>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <Link to="/login" className="w-full sm:w-auto px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transition-transform hover:-translate-y-1">
+                    Log In Now
+                  </Link>
+                  <Link to="/register" className="w-full sm:w-auto px-10 py-4 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-bold rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-transform hover:-translate-y-1">
+                    Create Account
+                  </Link>
                 </div>
               </div>
 
-              <div className="col-span-1 md:col-span-2">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Write Your Review</label>
-                <textarea
-                  required
-                  rows="4"
-                  value={reviewForm.review}
-                  onChange={(e) => setReviewForm({...reviewForm, review: e.target.value})}
-                  placeholder="Tell us what you loved about this place..."
-                  className="w-full px-5 py-4 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none"
-                ></textarea>
-              </div>
+            )}
 
-              <div className="col-span-1 md:col-span-2 mt-2 text-center">
-                <button 
-                  type="submit"
-                  className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transform transition-all hover:-translate-y-1"
-                >
-                  Submit Review
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       </section>

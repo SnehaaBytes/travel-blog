@@ -56,6 +56,8 @@ function AdminLayout() {
     { name: "Dashboard", path: "/admin", icon: "fas fa-chart-pie" },
     { name: "Destinations", path: "/admin/destinations", icon: "fas fa-map-marked-alt" },
     { name: "Bookings", path: "/admin/bookings", icon: "fas fa-calendar-alt" },
+    // ✅ NEW REVIEWS ROUTE ADDED HERE FOR THE SIDEBAR
+    { name: "Reviews", path: "/admin/reviews", icon: "fas fa-star" },
   ];
 
   // Dynamic header title based on current route

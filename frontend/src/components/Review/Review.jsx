@@ -1,7 +1,7 @@
-import React from 'react';
-// You can remove import './Review.css' entirely if you want since everything is now styled perfectly with Tailwind!
+import React, { useState, useEffect } from 'react';
 
-const reviews = [
+// Hardcoded reviews acting as initial starter data
+const starterReviews = [
   { name: "Priya Mehta", rating: 5, comment: "Loved how the site breaks down destinations with real budget details! It helped me plan my Manali trip perfectly." },
   { name: "Rohit Verma", rating: 4, comment: "Informative and beautifully written. I just wish there were more photos for smaller towns." },
   { name: "Sneha Patel", rating: 5, comment: "The activities section is so helpful! I didn’t know there were so many offbeat options in Goa until I read this." }, 
@@ -31,6 +31,28 @@ const StarRating = ({ rating }) => (
 );
 
 const Review = () => {
+  // 1. Create a state to hold all reviews
+  const [reviews, setReviews] = useState(starterReviews);
+
+  // 2. Load any new user-submitted reviews when the page mounts
+    useEffect(() => {
+    // 1. Fetch only the Approved real reviews from MongoDB!
+    const fetchApprovedReviews = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/reviews');
+        // 2. Put the real DB reviews above the starter examples!
+        setReviews([...res.data, ...starterReviews]);
+      } catch (err) {
+        console.error("Couldn't fetch reviews from DB", err);
+      }
+    };
+    
+    fetchApprovedReviews();
+    
+    // (Notice we deleted the localStorage.getItem('userReviews') stuff completely!)
+  }, []);
+
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-500 pt-28 pb-24 px-6 md:px-12 font-sans relative overflow-hidden">
       
@@ -73,14 +95,21 @@ const Review = () => {
                 
                 {/* Author Section */}
                 <div className="flex items-center pt-6 border-t border-slate-100 dark:border-slate-800 mt-auto">
-                  {/* Pulls an automatic colorful avatar based on their name */}
                   <img 
-                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(review.name)}&background=random&bold=true`} 
+                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(review.name || 'Anonymous')}&background=random&bold=true`} 
                     alt={review.name} 
                     className="w-12 h-12 rounded-full shadow-sm mr-4 border-2 border-white dark:border-slate-700"
                   />
                   <div>
-                    <h3 className="font-bold text-slate-900 dark:text-white">{review.name}</h3>
+                    <h3 className="font-bold text-slate-900 dark:text-white">
+                      {review.name} 
+                      {/* Show 'Blog Link' if they submitted one */}
+                      {review.blogUrl && (
+                        <a href={review.blogUrl} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-500 hover:text-blue-700 text-sm">
+                           <i className="fas fa-external-link-alt"></i> Blog
+                        </a>
+                      )}
+                    </h3>
                     <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Verified Traveler</p>
                   </div>
                 </div>

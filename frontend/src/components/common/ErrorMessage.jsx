@@ -1,34 +1,27 @@
-import PropTypes from 'prop-types';
+import React from 'react';
 
-/**
- * Reusable Error Message component
- * @param {Object} props - Component props
- * @param {string} props.message - Error message to display
- * @param {Function} props.onRetry - Optional retry function
- * @returns {React.ReactElement} Error Message component
- */
-const ErrorMessage = ({ message, onRetry }) => {
+const ErrorMessage = ({ message = "We encountered an unexpected error.", onRetry }) => {
   return (
-    <div className="bg-red-50 border border-red-200 rounded-lg p-6 flex flex-col items-center text-center">
-      <div className="text-red-500 text-4xl mb-4">
-        <i className="fas fa-exclamation-circle"></i>
-      </div>
-      <p className="text-red-800 mb-6 font-medium">{message}</p>
+    <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-2xl p-8 text-center shadow-lg w-full">
+      <i className="fas fa-exclamation-circle text-5xl text-rose-500 mb-4 animate-bounce"></i>
+      <h3 className="text-2xl font-black text-rose-700 dark:text-rose-400 mb-2">
+        Oops! Something went wrong
+      </h3>
+      <p className="text-rose-600 dark:text-rose-300 mb-6 font-medium text-lg">
+        {message}
+      </p>
+      
+      {/* If an 'onRetry' function was passed in, it shows a reset button */}
       {onRetry && (
-        <button
-          className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-6 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+        <button 
           onClick={onRetry}
+          className="inline-flex items-center gap-2 px-8 py-3 bg-rose-600 hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600 text-white rounded-xl font-bold transition-all shadow-md hover:-translate-y-1"
         >
-          Try Again
+          <i className="fas fa-redo-alt"></i> Try Again
         </button>
       )}
     </div>
   );
-};
-
-ErrorMessage.propTypes = {
-  message: PropTypes.string.isRequired,
-  onRetry: PropTypes.func
 };
 
 export default ErrorMessage;

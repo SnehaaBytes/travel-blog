@@ -353,43 +353,40 @@ export default function AiTripPlanner() {
 
   // ✅ FIXED callAI — handles all error formats correctly
   async function callAI(msgs, systemPrompt, maxTokens = 2000) {
-    setError(null);
-    try {
-      const res = await fetch("http://localhost:5000/api/ai/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: msgs,
-          system: systemPrompt,
-          max_tokens: maxTokens,
-        }),
-      });
+setError(null);
+try {
+const res = await fetch("http://localhost:5000/api/ai/chat", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({
+messages: msgs,
+system: systemPrompt,
+max_tokens: maxTokens,
+}),
+});
 
-      const data = await res.json().catch(() => ({}));
+const data = await res.json().catch(() => ({})); if (!res.ok) 
+  { const errMsg =
+     typeof data?.error === "string"
+      ? data.error 
+      : data?.error?.message || `Server error (HTTP ${res.status})`; 
+    throw new Error(errMsg);
+   }
 
-      if (!res.ok) {
-        const errMsg =
-          typeof data?.error === "string"
-            ? data.error
-            : data?.error?.message || `Server error (HTTP ${res.status})`;
-        throw new Error(errMsg);
-      }
+     const text = data?.reply;
 
-      const text =
-        data?.content?.[0]?.text ||
-        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-        data?.text ||
-        null;
+if (!text) {
+  throw new Error("Empty response from AI. Please try again.");
+}
 
-      if (!text) throw new Error("Empty response from AI. Please try again.");
-      return text;
+return text;
 
-    } catch (e) {
-      throw new Error(
-        typeof e.message === "string" ? e.message : "Unknown error occurred"
-      );
-    }
-  }
+} catch (e) {
+throw new Error(
+typeof e.message === "string" ? e.message : "Unknown error occurred"
+);
+}
+}
 
   async function startPlanning(finalData) {
     setShowHero(false);

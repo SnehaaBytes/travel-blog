@@ -14,7 +14,7 @@ dotenv.config();
 // Models
 import User from './models/User.js';
 import Destination from './models/Destination.js';
-import Message from './models/Message.js';
+import Review from './models/Review.js';
 
 // ✅ AI Route Import
 import aiRouter from './routes/ai.js';
@@ -245,24 +245,61 @@ app.post('/api/login', async (req, res) => {
 });
 
 // ========================
-// MESSAGES
+// REVIEWS ROUTES
 // ========================
 
-app.get('/api/messages', async (req, res) => {
-  const messages = await Message.find().sort({ createdAt: 1 });
-  res.json(messages);
+app.post('/api/reviews', async (req, res) => {
+  try {
+    const newReview = new Review(req.body);
+    const savedReview = await newReview.save();
+    res.status(201).json(savedReview); // Automatically defaults to 'pending'
+  } catch (error) {
+    res.status(500).json({ message: "Error saving review", error: error.message });
+  }
 });
 
-app.post('/api/messages', async (req, res) => {
-  const message = new Message(req.body);
-  await message.save();
-  res.status(201).json(message);
+app.get('/api/reviews', async (req, res) => {
+  try {
+    // Only fetches approved reviews for the public page
+    const reviews = await Review.find({ status: 'approved' }).sort({ createdAt: -1 });
+    res.status(200).json(reviews);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching reviews", error: error.message });
+  }
 });
 
-app.delete('/api/messages/:id', async (req, res) => {
-  await Message.findByIdAndDelete(req.params.id);
-  res.json({ message: 'Deleted' });
+app.get('/api/reviews/admin', async (req, res) => {
+    try {
+        // Admin gets all reviews (pending, approved, rejected)
+        const reviews = await Review.find().sort({ createdAt: -1 });
+        res.status(200).json(reviews);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching reviews", error: error.message });
+    }
 });
+
+app.put('/api/reviews/:id/status', async (req, res) => {
+  try {
+    const updatedReview = await Review.findByIdAndUpdate(
+        req.params.id, 
+        { status: req.body.status }, 
+        { new: true }
+    );
+    res.status(200).json(updatedReview);
+  } catch (error) {
+    res.status(500).json({ message: "Error updating status", error: error.message });
+  }
+});
+
+app.delete('/api/reviews/:id', async (req, res) => {
+  try {
+    await Review.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Review deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting review", error: error.message });
+  }
+});
+
 
 // ========================
 // SERVER
@@ -270,5 +307,5 @@ app.delete('/api/messages/:id', async (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);  // ✅ FIXED: added backticks
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
