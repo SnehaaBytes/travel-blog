@@ -77,7 +77,7 @@ function PaymentPage() {
 
       // Step 2: Open Razorpay popup
       const options = {
-        key: "rzp_test_SXw0QRjqGyZuBA",
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID, // ✅ reads from .env
         amount: order.amount,
         currency: order.currency,
         name: "Wanderlust India",
