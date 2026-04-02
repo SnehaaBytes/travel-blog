@@ -7,7 +7,7 @@ const reviewSchema = new mongoose.Schema({
   comment: { type: String, required: true },
   blogUrl: { type: String, default: "" },
   // Important: By default, reviews will be 'pending' so they won't show up until you approve them
-  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' },
   createdAt: { type: Date, default: Date.now }
 });
 

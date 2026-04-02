@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios'; // ✅ ADDED: This was missing and causing the fetch to fail!
 
 // Hardcoded reviews acting as initial starter data
 const starterReviews = [
@@ -35,7 +36,7 @@ const Review = () => {
   const [reviews, setReviews] = useState(starterReviews);
 
   // 2. Load any new user-submitted reviews when the page mounts
-    useEffect(() => {
+  useEffect(() => {
     // 1. Fetch only the Approved real reviews from MongoDB!
     const fetchApprovedReviews = async () => {
       try {
@@ -51,7 +52,6 @@ const Review = () => {
     
     // (Notice we deleted the localStorage.getItem('userReviews') stuff completely!)
   }, []);
-
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-500 pt-28 pb-24 px-6 md:px-12 font-sans relative overflow-hidden">
