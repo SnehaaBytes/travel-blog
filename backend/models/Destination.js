@@ -16,6 +16,8 @@ const destinationSchema = new mongoose.Schema({
     high: String,
   },
   itinerary: [String],
+  price: { type: Number, required: true }
+
 });
 
 export default mongoose.model("Destination", destinationSchema);

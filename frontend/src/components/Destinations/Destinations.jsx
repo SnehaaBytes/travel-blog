@@ -59,8 +59,8 @@ const Destinations = () => {
         <div className="absolute bottom-[-10%] right-[-5%] w-[30%] h-[30%] rounded-full bg-indigo-400/20 dark:bg-purple-600/10 blur-[120px]" />
       </div>
 
-      {/* HEADER SECTION */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-8 pt-28 pb-12 lg:pt-36 lg:pb-20">
+      {/* 👉 HEADER SECTION (SPACING FIXED HERE) */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-8 pt-10 pb-10 lg:pt-15 lg:pb-14">
         <div className="text-center max-w-3xl mx-auto space-y-6">
           <div className="inline-block px-5 py-1.5 rounded-full bg-blue-100/50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/50 backdrop-blur-md mb-2 shadow-sm">
             <p className="text-sm font-bold tracking-wider text-blue-700 dark:text-blue-300 uppercase">

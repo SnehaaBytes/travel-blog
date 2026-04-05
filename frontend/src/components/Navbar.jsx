@@ -3,14 +3,24 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FiSearch, FiMenu, FiX, FiSun, FiMoon } from "react-icons/fi";
 import { useAuth } from "../services/AuthContext";
 import { useTheme } from "../context/ThemeContext";
-import destinationsData from "./Destinations/destinationsData";
+import axios from "axios"; // 👉 NEW: We import axios to fetch live data!
 
 /* ================= SEARCH BAR ================= */
 const SearchBar = ({ onSearchCallback, placeholder = "Search..." }) => {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+  // 👉 NEW: State to hold our live database destinations
+  const [liveDestinations, setLiveDestinations] = useState([]); 
+  
   const wrapperRef = useRef(null);
   const navigate = useNavigate();
+
+  // 👉 NEW: Fetch the live destinations exactly once when the search bar loads!
+  useEffect(() => {
+    axios.get("http://localhost:5000/api/destinations")
+      .then(res => setLiveDestinations(res.data))
+      .catch(err => console.error("Error fetching for search bar:", err));
+  }, []);
 
   // Close suggestions on outside click
   useEffect(() => {
@@ -23,7 +33,7 @@ const SearchBar = ({ onSearchCallback, placeholder = "Search..." }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Debounce
+  // Debounce (Now using liveDestinations instead of frozen data!)
   useEffect(() => {
     const delay = setTimeout(() => {
       const trimmed = query.trim().toLowerCase();
@@ -33,7 +43,8 @@ const SearchBar = ({ onSearchCallback, placeholder = "Search..." }) => {
         return;
       }
 
-      const filtered = destinationsData.filter((dest) =>
+      // 👉 MAGIC: Now filters exactly against the live database!
+      const filtered = liveDestinations.filter((dest) =>
         dest.title?.toLowerCase().includes(trimmed)
       );
 
@@ -41,7 +52,7 @@ const SearchBar = ({ onSearchCallback, placeholder = "Search..." }) => {
     }, 300);
 
     return () => clearTimeout(delay);
-  }, [query]);
+  }, [query, liveDestinations]);
 
   const executeSearch = (searchTerm) => {
     const trimmed = searchTerm.trim();
@@ -100,30 +111,24 @@ const Navbar = () => {
 
   const location = useLocation();
 
-  // 🔥 NEW: Base links for everyone
-  const baseNavLinks = ["Home", "Destinations", "Explore Map", "Review", "About"];
-  
-  // 🔥 NEW: Dynamically add "Admin Panel" only if the logged-in user is an admin
+  const baseNavLinks = ["Home", "Destinations", "Explore Map", "Review", "Agencies", "About"];
   const navLinks = user?.isAdmin ? [...baseNavLinks, "Admin Panel"] : baseNavLinks;
 
-  // Scroll effect
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 40);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close menu on route change
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location]);
 
-  // 🔥 NEW: Handle routing correctly for the special Admin item
   const getRoutePath = (item) => {
     if (item === "Home") return "/";
     if (item === "Explore Map") return "/explore-map";
-    if (item === "Admin Panel") return "/admin"; // Update to /admin/dashboard if that's your route
-    return `/${item.toLowerCase()}`;
+    if (item === "Admin Panel") return "/admin"; 
+    return `/${item.toLowerCase()}`; 
   };
 
   return (
@@ -137,15 +142,12 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           
-          {/* Logo */}
           <Link to="/" className="flex items-center text-2xl font-bold text-slate-900 dark:text-white transition-colors">
-            Travel<span className="text-indigo-600 dark:text-indigo-500">Blogs</span>
+            Explore<span className="text-indigo-600 dark:text-indigo-500">Ease</span>
           </Link>
 
-          {/* Desktop */}
           <div className="hidden lg:flex items-center flex-1 ml-10">
             
-            {/* Links */}
             <div className="flex items-center gap-8 text-sm">
               {navLinks.map((item) => {
                 const isCurrent = location.pathname === getRoutePath(item);
@@ -169,10 +171,8 @@ const Navbar = () => {
               })}
             </div>
 
-            {/* Right Side */}
             <div className="flex items-center gap-4 ml-auto">
               
-              {/* ONLY ONE SEARCH (Desktop) */}
               <SearchBar placeholder="Search destinations..." />
 
               <button
@@ -198,7 +198,6 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Mobile Buttons */}
           <div className="lg:hidden flex items-center gap-3">
             <button 
               onClick={toggleTheme} 
@@ -217,17 +216,14 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* MOBILE MENU */}
       {mobileMenuOpen && (
         <div className="lg:hidden p-4 border-t border-slate-200 dark:border-white/10 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl shadow-lg space-y-4">
           
-          {/* Mobile Search */}
           <SearchBar
             placeholder="Search..."
             onSearchCallback={() => setMobileMenuOpen(false)}
           />
 
-          {/* Mobile Links */}
           <div className="flex flex-col gap-4">
             {navLinks.map((item) => {
               const isCurrent = location.pathname === getRoutePath(item);
@@ -250,7 +246,6 @@ const Navbar = () => {
               );
             })}
             
-            {/* Mobile Auth button */}
             <div className="pt-2 border-t border-slate-200 dark:border-white/5">
               {user ? (
                 <button onClick={logout} className="w-full text-left font-medium text-slate-700 dark:text-white active:text-indigo-600">

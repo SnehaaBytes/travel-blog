@@ -3,7 +3,7 @@ import axios from 'axios';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// 📍 Upgraded Coordinates Dictionary with Tawang and more!
+// 📍 Upgraded Coordinates Dictionary
 const coordinateMap = {
   'Manali': { lat: 32.2396, lng: 77.1887 },
   'Kashmir': { lat: 34.0837, lng: 74.7973 },
@@ -23,7 +23,7 @@ const coordinateMap = {
   'Andaman': { lat: 11.7401, lng: 92.6586 },
   'Sikkim': { lat: 27.5330, lng: 88.5122 },
   'Coorg': { lat: 12.3375, lng: 75.8069 },
-  'Tawang': { lat: 27.5861, lng: 91.8594 },          // Fixed!
+  'Tawang': { lat: 27.5861, lng: 91.8594 },          
   'Munnar': { lat: 10.0889, lng: 77.0595 },
   'Kerala': { lat: 10.8505, lng: 76.2711 },
   'Meghalaya': { lat: 25.4670, lng: 91.3662 },
@@ -50,7 +50,6 @@ export default function ExploreMap() {
     axios.get('http://localhost:5000/api/destinations')
       .then(res => {
         const dbDests = res.data.map((d, index) => {
-          // Look up coordinates from our map dictionary
           const coords = coordinateMap[d.title] || { lat: 20.5937, lng: 78.9629 };
           
           return {
@@ -79,7 +78,6 @@ export default function ExploreMap() {
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current || loading) return;
 
-    // Create map centered on India
     const map = L.map(mapRef.current, {
       center: [22.5, 78.9],
       zoom: 5,
@@ -105,7 +103,6 @@ export default function ExploreMap() {
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    // Clear existing markers
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
 
@@ -187,54 +184,82 @@ export default function ExploreMap() {
   }, [mapView]);
 
   return (
-    <div className="w-full min-h-screen bg-slate-50 dark:bg-slate-950 font-sans transition-colors duration-500 pt-16">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-500 pt-32 pb-24 px-6 md:px-12 font-sans relative overflow-hidden">
       
-      {/* Hero Section */}
-      <div className="relative h-[320px] md:h-[380px] bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-indigo-900 dark:to-slate-800 flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.1)_0%,transparent_50%),radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.1)_0%,transparent_50%)]" />
-        
-        <div className="relative text-center text-white px-6 max-w-3xl z-10 w-full animate-fade-in-up">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 drop-shadow-lg tracking-tight">Explore India on the Map</h1>
-          <p className="text-lg md:text-xl text-white/90 leading-relaxed font-light drop-shadow-md">
-            Discover amazing destinations across the country — click any marker to begin your journey!
-          </p>
-        </div>
+      {/* ── Decorative Background Elements (Same as Review!) ── */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-400/10 dark:bg-blue-600/10 blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[30%] h-[30%] rounded-full bg-indigo-400/10 dark:bg-purple-600/10 blur-[120px]" />
       </div>
 
-      {/* Map Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 -mt-16 relative z-20 mb-24">
-        <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-[2rem] p-4 sm:p-6 shadow-2xl border border-white dark:border-slate-800 transition-colors duration-500">
+      <div className="max-w-7xl mx-auto relative z-10 w-full">
+        
+        {/* ── Header Area ── */}
+        <div className="text-center mb-12">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-blue-100/50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/50 backdrop-blur-md mb-4 text-sm font-bold tracking-wider text-blue-700 dark:text-blue-400 uppercase">
+             Interactive Directory
+          </span>
+          <h1 className="text-5xl md:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            Explore <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500 dark:from-blue-400 dark:to-indigo-400">India</span> Map
+          </h1>
+          <p className="mt-5 text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+            Discover amazing hidden gems and popular destinations across the country! Click any marker to begin your journey.
+          </p>
+        </div>
+
+        {/* ── Action Bar (Search & Map/Satellite toggles) ── */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+            <div className="relative w-full md:w-96">
+               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <i className="fas fa-search text-slate-400"></i>
+               </div>
+               <input 
+                  type="text"
+                  placeholder="Search map locations..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3.5 bg-white/70 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm backdrop-blur-md transition-all font-medium"
+               />
+            </div>
+
+            <div className="flex bg-white/70 dark:bg-slate-900/70 p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-md">
+               <button
+                 onClick={() => setMapView('map')}
+                 className={`flex-1 md:flex-none flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${mapView === 'map' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+               >
+                 <i className="fas fa-map text-lg"></i> Map
+               </button>
+               <button
+                 onClick={() => setMapView('satellite')}
+                 className={`flex-1 md:flex-none flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${mapView === 'satellite' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+               >
+                 <i className="fas fa-satellite text-lg"></i> Satellite
+               </button>
+            </div>
+        </div>
+
+        {/* ── Outer Map Container (Matches Review Card) ── */}
+        <div className="group flex flex-col bg-white/70 dark:bg-slate-900/70 backdrop-blur-md rounded-[2.5rem] p-4 sm:p-6 border border-white dark:border-slate-800 shadow-xl shadow-slate-200/40 dark:shadow-none transition-all duration-300">
           
           {loading ? (
-            <div className="h-[500px] sm:h-[600px] w-full flex flex-col items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800">
-               <i className="fas fa-compass fa-spin text-5xl text-indigo-500 mb-4"></i>
-               <h3 className="text-xl font-bold text-slate-600 dark:text-slate-300">Plotting Destinations...</h3>
+            <div className="h-[500px] sm:h-[650px] w-full flex flex-col items-center justify-center rounded-[2rem] bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50">
+               <i className="fas fa-compass fa-spin text-5xl text-blue-500 mb-4 opacity-80"></i>
+               <h3 className="text-xl font-bold text-slate-600 dark:text-slate-300 animate-pulse">Plotting Destinations...</h3>
             </div>
           ) : (
             <div className="relative">
-              <div ref={mapRef} className="h-[500px] sm:h-[600px] w-full rounded-2xl z-10 border-4 border-white dark:border-slate-800 shadow-inner" />
-              
-              <div className="absolute top-4 right-4 z-[400] flex gap-2">
-                <button
-                  onClick={() => setMapView('map')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition-transform hover:scale-105 ${mapView === 'map' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 dark:bg-slate-800 dark:text-white'}`}
-                >
-                  <i className="fas fa-map"></i> Map
-                </button>
-                <button
-                  onClick={() => setMapView('satellite')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition-transform hover:scale-105 ${mapView === 'satellite' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 dark:bg-slate-800 dark:text-white'}`}
-                >
-                  <i className="fas fa-satellite"></i> Satellite
-                </button>
-              </div>
-
+              <div 
+                ref={mapRef} 
+                className="h-[500px] sm:h-[650px] w-full rounded-[2rem] z-10 border border-slate-200 dark:border-slate-700 shadow-inner overflow-hidden" 
+              />
             </div>
           )}
 
         </div>
+
       </div>
 
+      {/* ── Leaflet Theme CSS ── */}
       <style>{`
         .theme-popup .leaflet-popup-content-wrapper {
           padding: 6px;

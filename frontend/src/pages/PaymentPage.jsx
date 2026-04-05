@@ -6,86 +6,51 @@ function PaymentPage() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const { form, destination, totalPrice } = state || {};
 
-  const { form, destination } = state || {};
-
-  // ── Empty state ──────────────────────────────────────────────────────────────
   if (!form) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "linear-gradient(135deg, #1a0a00 0%, #2d1200 50%, #1a0800 100%)",
-          padding: "2rem",
-          textAlign: "center",
-          fontFamily: "'Cormorant Garamond', Georgia, serif",
-        }}
-      >
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');`}</style>
-        <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🕌</div>
-        <h2
-          style={{
-            fontSize: "2rem",
-            fontWeight: "700",
-            color: "#f5c842",
-            marginBottom: "0.5rem",
-            letterSpacing: "0.05em",
-          }}
-        >
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-slate-200 dark:from-slate-900 dark:to-slate-950 p-8 text-center font-sans">
+        <div className="w-24 h-24 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center mb-6 shadow-xl border border-slate-100 dark:border-slate-700">
+          <i className="fas fa-compass text-4xl text-slate-400 dark:text-slate-500 animate-spin-slow"></i>
+        </div>
+        <h2 className="text-4xl font-extrabold text-slate-900 dark:text-white mb-4">
           No Booking Found
         </h2>
-        <p style={{ color: "#a07840", marginBottom: "2rem", fontSize: "1.05rem" }}>
-          Your journey details seem to have wandered off. Please go back and try again.
+        <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md text-lg">
+          Your travel details seem to have wandered off. Please return to the destinations page and try again.
         </p>
         <button
           onClick={() => navigate(-1)}
-          style={{
-            padding: "0.85rem 2rem",
-            background: "linear-gradient(135deg, #c8860a, #f5c842)",
-            color: "#1a0800",
-            border: "none",
-            borderRadius: "50px",
-            fontFamily: "'Cormorant Garamond', serif",
-            fontSize: "1rem",
-            fontWeight: "700",
-            cursor: "pointer",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-          }}
+          className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-200 dark:shadow-none transition-all transform hover:-translate-y-1 flex items-center justify-center gap-3"
         >
-          Return to Booking
+          <i className="fas fa-arrow-left"></i> Return to Booking
         </button>
       </div>
     );
   }
 
-  // ── Razorpay payment handler ─────────────────────────────────────────────────
+  // ── Razorpay payment handler 
   const handlePayment = async () => {
     setLoading(true);
     try {
-      // Step 1: Create order on backend
+      const exactAmount = totalPrice || form.amount || 999;
       const { data } = await axios.post("http://localhost:5000/api/payment/create-order", {
-        amount: form.amount || 999,
+        amount: exactAmount,
         bookingId: form._id || `booking_${Date.now()}`,
       });
 
       const { order } = data;
 
-      // Step 2: Open Razorpay popup
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID, // ✅ reads from .env
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID, 
         amount: order.amount,
         currency: order.currency,
-        name: "Wanderlust India",
+        name: "ExploreEase",
         description: `Trip to ${destination}`,
         order_id: order.id,
         handler: async (response) => {
           try {
-            // Step 3: Verify signature on backend
             const verify = await axios.post("http://localhost:5000/api/payment/verify", {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
@@ -97,12 +62,12 @@ function PaymentPage() {
               return;
             }
 
-            // Step 4: Save booking only after verified payment
             await axios.post("http://localhost:5000/api/bookings", {
               ...form,
               destination,
               paymentId: verify.data.paymentId,
               orderId: response.razorpay_order_id,
+              totalAmount: exactAmount
             });
 
             navigate("/success");
@@ -117,7 +82,7 @@ function PaymentPage() {
           contact: form.phone || "",
         },
         theme: {
-          color: "#c8860a",
+          color: "#4f46e5",
         },
         modal: {
           ondismiss: () => setLoading(false),
@@ -138,344 +103,146 @@ function PaymentPage() {
     }
   };
 
-  // ── Booking detail rows ──────────────────────────────────────────────────────
+  const finalAmount = totalPrice || form.amount;
+
+  // ── Booking detail rows 
   const rows = [
-    { label: "Destination", value: destination, icon: "✦" },
-    { label: "Full Name", value: form.name, icon: "◈" },
+    { label: "Destination", value: destination, icon: "fas fa-map-marker-alt" },
+    { label: "Full Name", value: form.name, icon: "fas fa-user" },
     {
       label: "Guests",
       value: `${form.people} ${Number(form.people) > 1 ? "Travellers" : "Traveller"}`,
-      icon: "◇",
+      icon: "fas fa-users",
     },
-    { label: "Agency", value: form.agency, icon: "⬡" },
-    ...(form.date ? [{ label: "Travel Date", value: form.date, icon: "◉" }] : []),
-    ...(form.amount
-      ? [{ label: "Total Amount", value: `₹${Number(form.amount).toLocaleString("en-IN")}`, icon: "◆" }]
+    { label: "Partner Agency", value: form.agency, icon: "fas fa-building" },
+    ...(form.date ? [{ label: "Travel Date", value: form.date, icon: "fas fa-calendar-alt" }] : []),
+    ...(finalAmount
+      ? [{ label: "Total Amount Payable", value: `₹${Number(finalAmount).toLocaleString("en-IN")}`, icon: "fas fa-rupee-sign" }]
       : []),
   ];
 
-  // ── Main render ──────────────────────────────────────────────────────────────
+  
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background:
-          "linear-gradient(160deg, #100500 0%, #1f0c00 40%, #2a1200 70%, #140800 100%)",
-        padding: "2rem 1rem",
-        fontFamily: "'Cormorant Garamond', Georgia, serif",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Google Font */}
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
-      `}</style>
+        <div className="min-h-screen flex flex-col justify-center relative pt-32 pb-16 px-4 sm:px-6 font-sans overflow-y-auto">
 
-      {/* Background radial glow */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          backgroundImage: `
-            radial-gradient(circle at 15% 20%, rgba(197,133,10,0.08) 0%, transparent 40%),
-            radial-gradient(circle at 85% 80%, rgba(197,133,10,0.06) 0%, transparent 40%),
-            radial-gradient(circle at 50% 50%, rgba(255,165,0,0.03) 0%, transparent 60%)
-          `,
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* Mandala-inspired ring accents */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          top: "-200px",
-          right: "-200px",
-          width: "500px",
-          height: "500px",
-          borderRadius: "50%",
-          border: "1px solid rgba(197,133,10,0.06)",
-          pointerEvents: "none",
-        }}
-      />
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          top: "-160px",
-          right: "-160px",
-          width: "420px",
-          height: "420px",
-          borderRadius: "50%",
-          border: "1px solid rgba(197,133,10,0.04)",
-          pointerEvents: "none",
-        }}
-      />
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          bottom: "-180px",
-          left: "-180px",
-          width: "460px",
-          height: "460px",
-          borderRadius: "50%",
-          border: "1px solid rgba(197,133,10,0.05)",
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* ── Card ── */}
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "460px",
-          background:
-            "linear-gradient(160deg, rgba(42,20,5,0.97) 0%, rgba(30,12,2,0.98) 100%)",
-          borderRadius: "20px",
-          border: "1px solid rgba(197,133,10,0.3)",
-          boxShadow:
-            "0 0 0 1px rgba(197,133,10,0.08), 0 32px 80px rgba(0,0,0,0.7), 0 0 60px rgba(197,133,10,0.04)",
-          overflow: "hidden",
-          position: "relative",
-        }}
-      >
-        {/* Gold top stripe */}
-        <div
-          style={{
-            height: "3px",
-            background:
-              "linear-gradient(90deg, transparent, #c8860a 30%, #f5c842 50%, #c8860a 70%, transparent)",
-          }}
+      
+      {/* --- Stunning Background Imagery --- */}
+      <div className="absolute inset-0 z-0">
+        <img 
+          src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2074&auto=format&fit=crop" 
+          alt="Travel Background" 
+          className="w-full h-full object-cover"
         />
+        {/* Dark overlay for contrast */}
+        <div className="absolute inset-0 bg-slate-900/80 dark:bg-black/85 backdrop-blur-[4px]"></div>
+        {/* Soft glowing accents */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/20 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/20 rounded-full blur-[100px] pointer-events-none"></div>
+      </div>
 
-        {/* ── Header ── */}
-        <div
-          style={{
-            padding: "2.5rem 2.5rem 2rem",
-            textAlign: "center",
-            borderBottom: "1px solid rgba(197,133,10,0.12)",
-          }}
-        >
-          {/* Diya icon circle */}
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "64px",
-              height: "64px",
-              borderRadius: "50%",
-              background:
-                "linear-gradient(135deg, rgba(197,133,10,0.15), rgba(197,133,10,0.05))",
-              border: "1px solid rgba(197,133,10,0.35)",
-              marginBottom: "1.25rem",
-              fontSize: "1.6rem",
-            }}
-          >
-            🪔
+      {/* --- Main Premium Split Card --- */}
+      <div className="relative z-10 w-full max-w-5xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-white/20 dark:border-slate-800 flex flex-col lg:flex-row overflow-hidden">
+        
+        {/* ── LEFT SIDE: Visual Journey Summary ── */}
+        <div className="w-full lg:w-5/12 relative overflow-hidden bg-gradient-to-br from-indigo-700 to-blue-800 text-white p-10 md:p-14 flex flex-col justify-between">
+          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1.5px,_transparent_1.5px)] bg-[length:24px_24px]"></div>
+          
+          <div className="relative z-10 mb-12">
+            <h3 className="text-indigo-200 text-sm font-bold tracking-[0.2em] uppercase mb-4 opacity-90">Secure Checkout</h3>
+            <h2 className="text-4xl lg:text-5xl font-black mb-6 leading-tight tracking-tight">Your Journey Awaits!</h2>
+            <p className="text-indigo-100 text-lg opacity-90 leading-relaxed font-light">
+              Get ready to explore the stunning beauty of <span className="font-bold text-white block mt-1 text-2xl">{destination}</span>
+            </p>
           </div>
 
-          <div
-            style={{
-              fontSize: "0.65rem",
-              letterSpacing: "0.25em",
-              color: "#c8860a",
-              textTransform: "uppercase",
-              fontWeight: "600",
-              marginBottom: "0.5rem",
-            }}
-          >
-            Secure Checkout
-          </div>
-
-          <h2
-            style={{
-              fontSize: "2rem",
-              fontWeight: "700",
-              color: "#f0d070",
-              margin: 0,
-              letterSpacing: "0.02em",
-              lineHeight: 1.2,
-            }}
-          >
-            Payment Summary
-          </h2>
-          <p
-            style={{
-              color: "#7a5a30",
-              marginTop: "0.5rem",
-              fontSize: "0.95rem",
-              fontStyle: "italic",
-            }}
-          >
-            Review your journey before confirming
-          </p>
-        </div>
-
-        {/* ── Booking Details ── */}
-        <div style={{ padding: "2rem 2.5rem" }}>
-          <div
-            style={{
-              background: "rgba(255,255,255,0.02)",
-              border: "1px solid rgba(197,133,10,0.15)",
-              borderRadius: "12px",
-              overflow: "hidden",
-            }}
-          >
-            {rows.map((row, i) => (
-              <div
-                key={row.label}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "0.95rem 1.25rem",
-                  borderBottom:
-                    i < rows.length - 1
-                      ? "1px solid rgba(197,133,10,0.08)"
-                      : "none",
-                  gap: "1rem",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                  <span style={{ color: "#c8860a", fontSize: "0.7rem" }}>{row.icon}</span>
-                  <span
-                    style={{
-                      fontSize: "0.8rem",
-                      color: "#7a5a30",
-                      letterSpacing: "0.06em",
-                      textTransform: "uppercase",
-                      fontWeight: "600",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {row.label}
-                  </span>
+          <div className="relative z-10 bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20 shadow-2xl">
+             <div className="flex items-center gap-5">
+                <div className="w-14 h-14 rounded-full bg-white/20 flex flex-shrink-0 items-center justify-center border border-white/30">
+                   <i className="fas fa-plane-departure text-white text-xl ml-1"></i>
                 </div>
-                <span
-                  style={{
-                    fontSize: "0.95rem",
-                    color: row.label === "Total Amount" ? "#f5c842" : "#e8c870",
-                    fontWeight: row.label === "Total Amount" ? "700" : "600",
-                    textAlign: "right",
-                    maxWidth: "55%",
-                    wordBreak: "break-word",
-                  }}
-                >
-                  {row.value}
-                </span>
-              </div>
-            ))}
+                <div>
+                   <p className="text-indigo-200 text-xs font-bold uppercase tracking-widest mb-1">Official Partner</p>
+                   <p className="text-white font-extrabold text-xl font-serif">{form.agency}</p>
+                </div>
+             </div>
           </div>
-
-          {/* Ornamental divider */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.75rem",
-              margin: "1.75rem 0",
-            }}
-          >
-            <div
-              style={{ flex: 1, height: "1px", background: "rgba(197,133,10,0.15)" }}
-            />
-            <span style={{ color: "#c8860a", fontSize: "0.7rem" }}>✦ ✦ ✦</span>
-            <div
-              style={{ flex: 1, height: "1px", background: "rgba(197,133,10,0.15)" }}
-            />
-          </div>
-
-          {/* ── Pay Button ── */}
-          <button
-            onClick={handlePayment}
-            disabled={loading}
-            style={{
-              width: "100%",
-              padding: "1rem",
-              background: loading
-                ? "rgba(100,60,10,0.4)"
-                : "linear-gradient(135deg, #b8750a 0%, #e8b830 50%, #c8860a 100%)",
-              color: loading ? "#7a5a30" : "#1a0800",
-              border: "none",
-              borderRadius: "10px",
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "1.05rem",
-              fontWeight: "700",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              cursor: loading ? "not-allowed" : "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "0.6rem",
-              boxShadow: loading
-                ? "none"
-                : "0 4px 24px rgba(197,133,10,0.25), 0 1px 0 rgba(255,220,100,0.3) inset",
-              transition: "all 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              if (!loading) {
-                e.currentTarget.style.boxShadow =
-                  "0 6px 32px rgba(197,133,10,0.4), 0 1px 0 rgba(255,220,100,0.3) inset";
-                e.currentTarget.style.transform = "translateY(-1px)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow =
-                "0 4px 24px rgba(197,133,10,0.25), 0 1px 0 rgba(255,220,100,0.3) inset";
-              e.currentTarget.style.transform = "translateY(0)";
-            }}
-          >
-            {loading ? (
-              <>
-                <span style={{ fontSize: "1rem" }}>⏳</span> Processing…
-              </>
-            ) : (
-              <>
-                <span style={{ fontSize: "1rem" }}>🔐</span> Confirm & Pay
-              </>
-            )}
-          </button>
-
-          {/* ── Back link ── */}
-          <button
-            onClick={() => navigate(-1)}
-            style={{
-              marginTop: "1.1rem",
-              width: "100%",
-              background: "transparent",
-              border: "none",
-              color: "#5a3e1a",
-              fontSize: "0.85rem",
-              fontFamily: "'Cormorant Garamond', serif",
-              fontStyle: "italic",
-              cursor: "pointer",
-              letterSpacing: "0.03em",
-              transition: "color 0.2s",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#c8860a")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#5a3e1a")}
-          >
-            ← Change booking details
-          </button>
         </div>
 
-        {/* Gold bottom stripe */}
-        <div
-          style={{
-            height: "3px",
-            background:
-              "linear-gradient(90deg, transparent, #c8860a 30%, #f5c842 50%, #c8860a 70%, transparent)",
-          }}
-        />
+        {/* ── RIGHT SIDE: Receipt & Payment ── */}
+        <div className="w-full lg:w-7/12 p-8 md:p-14 flex flex-col bg-slate-50 dark:bg-transparent">
+           
+           <div className="mb-8 flex justify-between items-end">
+             <div>
+               <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Order Summary</h3>
+               <p className="text-slate-500 dark:text-slate-400 font-medium">Please review your booking details.</p>
+             </div>
+             {/* Security Icon Badge */}
+             <div className="hidden sm:flex flex-col items-center justify-center w-14 h-14 rounded-full bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400">
+               <i className="fas fa-shield-check text-xl"></i>
+             </div>
+           </div>
+
+           {/* Receipt Rows */}
+           <div className="bg-white dark:bg-slate-800/40 rounded-[2rem] p-6 sm:p-8 border border-slate-200 dark:border-slate-700/50 shadow-sm mb-10 space-y-5">
+             {rows.map((row) => {
+               const isAmount = row.label === "Total Amount Payable";
+               return (
+                  <div key={row.label} className={`flex justify-between items-center ${isAmount ? "pt-6 mt-4 border-t-2 border-dashed border-slate-200 dark:border-slate-700" : ""}`}>
+                    <div className="flex items-center gap-4 text-slate-500 dark:text-slate-400">
+                      <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-slate-100 dark:border-slate-700">
+                        <i className={`${row.icon} text-indigo-500 dark:text-indigo-400`}></i>
+                      </div>
+                      <span className="text-sm font-bold tracking-wide">{row.label}</span>
+                    </div>
+                    <span className={`${isAmount ? "text-3xl font-black text-indigo-600 dark:text-indigo-400" : "text-base font-bold text-slate-800 dark:text-white"}`}>
+                      {row.value}
+                    </span>
+                  </div>
+               );
+             })}
+           </div>
+
+           {/* Pay Button Area */}
+           <div className="mt-auto">
+              <button
+                onClick={handlePayment}
+                disabled={loading}
+                className={`w-full py-5 px-6 rounded-2xl font-extrabold text-xl flex items-center justify-center gap-3 shadow-xl transition-all duration-500 outline-none focus:ring-4 focus:ring-indigo-500/50 ${
+                  loading 
+                    ? "bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed shadow-none" 
+                    : "bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-600 bg-[length:200%_auto] text-white hover:bg-right hover:shadow-indigo-500/30 transform hover:-translate-y-1"
+                }`}
+              >
+                {loading ? (
+                  <>
+                    <div className="w-6 h-6 border-3 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                    Processing Payment...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-lock text-indigo-200"></i>
+                    Pay Securely Now
+                  </>
+                )}
+              </button>
+
+              <div className="flex justify-between items-center mt-6">
+                <button
+                  onClick={() => navigate(-1)}
+                  disabled={loading}
+                  className="text-sm font-bold text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-2"
+                >
+                  <i className="fas fa-arrow-left"></i> Edit Details
+                </button>
+
+                <p className="text-xs text-slate-400 dark:text-slate-500 font-bold flex items-center gap-2">
+                  <i className="fas fa-lock text-slate-300 dark:text-slate-600"></i>
+                  Guaranteed by Razorpay
+                </p>
+              </div>
+           </div>
+           
+        </div>
       </div>
     </div>
   );

@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { FiRefreshCw, FiEdit2, FiTrash2, FiMapPin, FiSearch } from "react-icons/fi";
+// 👉 Boom! The magic CSS file that unifies the dashboard
+import "./ManageDestinations.css";
 
 function Bookings() {
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // 🔥 NEW: Pagination State
+  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // You can change how many items show per page here
+  const itemsPerPage = 6; 
 
   useEffect(() => {
     fetchBookings();
@@ -25,21 +29,17 @@ function Bookings() {
     }
   };
 
-  // 🔥 NEW: Delete Function
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this booking?")) {
       try {
         await axios.delete(`http://localhost:5000/api/bookings/${id}`);
-        // Remove from the UI list
         const updatedBookings = bookings.filter((b) => b._id !== id);
         setBookings(updatedBookings);
         
-        // Go back a page if we deleted the last item on the current page
         const newTotalPages = Math.ceil(updatedBookings.length / itemsPerPage) || 1;
         if (currentPage > newTotalPages) {
           setCurrentPage(newTotalPages);
         }
-        
       } catch (err) {
         console.error("Failed to delete booking:", err);
         alert("Failed to delete the booking.");
@@ -47,212 +47,196 @@ function Bookings() {
     }
   };
 
-  // 🔥 NEW: Edit Function
   const handleEdit = (booking) => {
     console.log("Edit booking:", booking);
-    alert(`Edit mode for ${booking.name}. Implement your edit modal here!`);
+    alert(`Edit mode for ${booking.name}. Modal can be integrated here!`);
   };
 
-  // 🔥 NEW: Paging Calculations
-  const totalPages = Math.ceil(bookings.length / itemsPerPage) || 1;
-  const paginatedBookings = bookings.slice(
+  // Search Filter
+  const filteredBookings = bookings.filter((b) => 
+    b.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    b.destination?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    b.agency?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  const totalPages = Math.ceil(filteredBookings.length / itemsPerPage) || 1;
+  const paginatedBookings = filteredBookings.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  // Dynamic stats with expanded theme data
+  // Dynamic stats
   const stats = [
     {
       title: "Total Bookings",
       value: bookings.length,
       icon: "fas fa-ticket-alt",
-      color: "from-blue-500 to-indigo-600",
-      bgLight: "bg-blue-50",
-      iconColor: "text-blue-600"
+      color: "var(--primary-color, #4facfe)"
     },
     {
       title: "Pending Approval",
       value: bookings.filter(b => b.status === "pending").length,
       icon: "fas fa-clock",
-      color: "from-amber-400 to-orange-500",
-      bgLight: "bg-amber-50",
-      iconColor: "text-amber-500"
+      color: "#f5c842"
     },
     {
       title: "Completed Trips",
-      value: bookings.filter(b => b.status === "completed").length,
+      value: bookings.filter(b => b.status !== "pending").length,
       icon: "fas fa-check-circle",
-      color: "from-emerald-400 to-emerald-500",
-      bgLight: "bg-emerald-50",
-      iconColor: "text-emerald-500"
+      color: "#4caf50"
     }
   ];
 
   return (
-    <div className="w-full min-h-screen bg-gray-50/50 p-4 md:p-8 font-sans">
-      
-      {/* HEADER & REFRESH BUTTON */}
-      <div className="flex flex-col md:flex-row md:items-end w-full justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
-            Bookings Overview
-          </h1>
-          <p className="text-gray-500 mt-2 font-medium">
-            Manage and track all your travel reservations
-          </p>
-        </div>
+    <div className="md-wrapper">
+      <div className="md-background-glow glow-primary"></div>
+      <div className="md-background-glow glow-secondary"></div>
+
+      <div className="md-container">
         
-        <button
-          onClick={fetchBookings}
-          disabled={isLoading}
-          className="group flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed w-full md:w-auto"
-        >
-          <i className={`fas fa-sync-alt ${isLoading ? "animate-spin" : "group-hover:rotate-180 transition-transform duration-500"}`}></i>
-          {isLoading ? "Refreshing..." : "Refresh Data"}
-        </button>
-      </div>
-
-      {/* STATS CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-        {stats.map((stat, index) => (
-          <div 
-            key={index} 
-            className="relative overflow-hidden bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow group"
-          >
-            {/* Left Accent Bar */}
-            <div className={`absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b ${stat.color}`}></div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-400 text-sm font-bold uppercase tracking-wider mb-1">
-                  {stat.title}
-                </p>
-                <h3 className="text-4xl font-black text-gray-800">
-                  {stat.value}
-                </h3>
-              </div>
-              <div className={`w-14 h-14 flex items-center justify-center rounded-2xl ${stat.bgLight} group-hover:scale-110 transition-transform duration-300`}>
-                <i className={`${stat.icon} text-2xl ${stat.iconColor}`}></i>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* TABLE OR EMPTY STATE */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-6 border-b border-gray-100 bg-white flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-800">Recent Bookings</h2>
-          <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full font-bold uppercase tracking-wider">
-            {bookings.length} total
-          </span>
+        {/* --- DYNAMIC STATS WIDGETS --- */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+           {stats.map((stat, idx) => (
+             <div key={idx} className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+               <div>
+                 <p style={{ fontSize: '13px', fontWeight: 'bold', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', letterSpacing: '1px', marginBottom: '8px' }}>{stat.title}</p>
+                 <h3 style={{ fontSize: '38px', margin: 0, color: 'white', fontWeight: 900, textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>{stat.value}</h3>
+               </div>
+               <div style={{ width: '60px', height: '60px', borderRadius: '18px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 4px 10px rgba(255,255,255,0.05)' }}>
+                 <i className={stat.icon} style={{ fontSize: '24px', color: stat.color, filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.3))' }}></i>
+               </div>
+             </div>
+           ))}
         </div>
 
-        {bookings.length === 0 ? (
-          <div className="p-12 flex flex-col items-center justify-center text-center">
-            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-              <i className="fas fa-folder-open text-3xl text-gray-300"></i>
+        {/* --- MAIN TABLE PANEL --- */}
+        <div className="glass-panel fade-in md-full-height">
+          
+          <div className="md-toolbar">
+            <div className="md-toolbar-left">
+              <h3>Reservations</h3>
+              <span className="md-pill-count">{filteredBookings.length} Found</span>
             </div>
-            <h3 className="text-lg font-bold text-gray-700 mb-1">No bookings found</h3>
-            <p className="text-gray-500 max-w-sm">When new bookings are made, they will appear here in your dashboard.</p>
+            
+            <div className="md-toolbar-right">
+              <div className="md-search-glass">
+                <FiSearch />
+                <input 
+                  type="text" 
+                  placeholder="Search guests or destinations..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              
+              <button className="md-btn-outline" onClick={fetchBookings} disabled={isLoading}>
+                <FiRefreshCw className={isLoading ? "fa-spin" : ""} /> {isLoading ? "Refreshing..." : "Sync Data"}
+              </button>
+            </div>
           </div>
-        ) : (
-          <div className="flex flex-col">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[800px]">
-                <thead>
-                  <tr className="bg-gray-50/80 text-gray-500 text-xs uppercase tracking-wider">
-                    <th className="p-4 font-bold first:pl-6">Guest Info</th>
-                    <th className="p-4 font-bold">Destination</th>
-                    <th className="p-4 font-bold">Date</th>
-                    <th className="p-4 font-bold text-center">Guests</th>
-                    <th className="p-4 font-bold">Agency</th>
-                    <th className="p-4 font-bold">Status</th>
-                    {/* 🔥 NEW: Actions Header */}
-                    <th className="p-4 font-bold text-center last:pr-6">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 text-sm">
-                  {paginatedBookings.map((b) => (
-                    <tr key={b._id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="p-4 first:pl-6">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-100 to-indigo-100 flex items-center justify-center text-blue-700 font-bold shadow-inner">
-                            {b.name?.charAt(0)?.toUpperCase() || "?"}
-                          </div>
-                          <span className="font-semibold text-gray-800">{b.name}</span>
+
+          <div className="md-table-wrapper">
+            <table className="md-glass-table">
+              <thead>
+                <tr>
+                  <th>Guest Info</th>
+                  <th>Destination</th>
+                  <th>Travel Date</th>
+                  <th style={{textAlign: 'center'}}>Guests</th>
+                  <th>Partner Agency</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {isLoading ? (
+                  <tr><td colSpan="7" className="md-empty-state"><i className="fas fa-compass fa-spin"></i> Fetching bookings...</td></tr>
+                ) : filteredBookings.length === 0 ? (
+                  <tr><td colSpan="7" className="md-empty-state">{searchQuery ? "No matching bookings." : "Your travel agenda is empty."}</td></tr>
+                ) : (
+                  paginatedBookings.map((b) => (
+                    <tr key={b._id} className="md-table-row">
+                      
+                      <td>
+                        <div className="md-cell-flex">
+                           <div style={{width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.3)', fontSize: '18px'}}>
+                             {b.name?.charAt(0)?.toUpperCase() || "?"}
+                           </div>
+                           <strong className="md-row-title">{b.name}</strong>
                         </div>
                       </td>
-                      <td className="p-4 text-gray-600 font-medium whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <i className="fas fa-map-marker-alt text-red-400"></i>
-                          {b.destination}
-                        </div>
+                      
+                      <td style={{color: 'rgba(255,255,255,0.9)', fontWeight: 500}}>
+                        <FiMapPin style={{marginRight: '6px', color: '#f5c842', verticalAlign: 'text-bottom'}} /> 
+                        {b.destination}
                       </td>
-                      <td className="p-4 text-gray-600 border-none whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <i className="far fa-calendar-alt text-gray-400"></i>
-                          {b.date}
-                        </div>
+                      
+                      <td style={{color: 'rgba(255,255,255,0.7)'}}>
+                        <i className="far fa-calendar-alt" style={{marginRight: '6px'}}></i> 
+                        {b.date}
                       </td>
-                      <td className="p-4 text-center">
-                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-700 font-bold text-xs">
+                      
+                      <td style={{textAlign: 'center'}}>
+                        <span style={{background: 'rgba(255,255,255,0.08)', padding: '6px 14px', borderRadius: '20px', fontWeight: 'bold', color: 'white', border: '1px solid rgba(255,255,255,0.1)'}}>
                           {b.people}
                         </span>
                       </td>
-                      <td className="p-4 text-gray-600 font-medium">
-                        {b.agency}
-                      </td>
-                      <td className="p-4">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
-                            b.status === "pending"
-                              ? "bg-amber-100 text-amber-700 border border-amber-200"
-                              : "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                          }`}
-                        >
-                          <span className={`w-1.5 h-1.5 rounded-full ${b.status === "pending" ? "bg-amber-500 animate-pulse" : "bg-emerald-500"}`}></span>
-                          {b.status === "pending" ? "Pending" : "Completed"}
+                      
+                      <td style={{color: 'rgba(255,255,255,0.8)', fontStyle: 'italic'}}>{b.agency}</td>
+                      
+                      <td>
+                        <span style={{
+                          padding: '6px 12px', 
+                          borderRadius: '8px', 
+                          fontSize: '11px', 
+                          fontWeight: 'bold', 
+                          letterSpacing: '1px',
+                          textTransform: 'uppercase',
+                          background: b.status === "pending" ? 'rgba(245, 200, 66, 0.15)' : 'rgba(76, 175, 80, 0.15)',
+                          color: b.status === "pending" ? '#f5c842' : '#4caf50',
+                          border: `1px solid ${b.status === "pending" ? 'rgba(245, 200, 66, 0.3)' : 'rgba(76, 175, 80, 0.3)'}`
+                        }}>
+                          {b.status === "pending" ? (
+                            <><i className="fas fa-circle" style={{fontSize: '8px', marginRight: '4px', verticalAlign: 'middle'}}></i> PENDING</>
+                          ) : (
+                            <><i className="fas fa-check" style={{marginRight: '4px'}}></i> CONFIRMED</>
+                          )}
                         </span>
                       </td>
-                      {/* 🔥 NEW: Actions Buttons */}
-                      <td className="p-4 text-center last:pr-6">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => handleEdit(b)}
-                            className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition-colors flex items-center justify-center shadow-sm"
-                            title="Edit"
-                          >
-                            <i className="fas fa-edit"></i>
+                      
+                      <td>
+                        <div className="md-action-group">
+                          <button className="md-icon-action edit" onClick={() => handleEdit(b)} title="Edit">
+                            <FiEdit2 />
                           </button>
-                          <button
-                            onClick={() => handleDelete(b._id)}
-                            className="w-8 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 transition-colors flex items-center justify-center shadow-sm"
-                            title="Delete"
-                          >
-                            <i className="fas fa-trash-alt"></i>
+                          <button className="md-icon-action delete" onClick={() => handleDelete(b._id)} title="Delete">
+                            <FiTrash2 />
                           </button>
                         </div>
                       </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
 
-            {/* 🔥 NEW: Pagination Controls */}
-            {bookings.length > 0 && (
-              <div className="p-4 border-t border-gray-100 bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <span className="text-sm text-gray-500 font-medium">
-                  Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                  {Math.min(currentPage * itemsPerPage, bookings.length)} of {bookings.length} entries
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+
+            {/* Pagination Controls */}
+            {filteredBookings.length > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.6)", fontWeight: 500 }}>
+                  Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredBookings.length)} of {filteredBookings.length}
                 </span>
                 
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                <div style={{ display: "flex", gap: "6px" }}>
+                  <button 
                     disabled={currentPage === 1}
-                    className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 text-sm font-bold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    style={{ padding: "6px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", margin: 0, color: "white", cursor: currentPage === 1 ? "not-allowed" : "pointer", opacity: currentPage === 1 ? 0.5 : 1, fontWeight: 'bold' }}
                   >
                     Prev
                   </button>
@@ -261,31 +245,32 @@ function Bookings() {
                     <button
                       key={idx}
                       onClick={() => setCurrentPage(idx + 1)}
-                      className={`w-8 h-8 rounded-lg text-sm font-bold flex items-center justify-center transition-colors ${
-                        currentPage === idx + 1
-                          ? "bg-blue-600 text-white shadow-sm"
-                          : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
-                      }`}
+                      style={{ 
+                        width: "34px", height: "34px", borderRadius: "8px", 
+                        border: currentPage === idx + 1 ? "none" : "1px solid rgba(255,255,255,0.1)", 
+                        background: currentPage === idx + 1 ? "var(--primary-color, #4facfe)" : "rgba(255,255,255,0.05)", 
+                        color: "white", cursor: "pointer", fontWeight: "bold",
+                        boxShadow: currentPage === idx + 1 ? '0 4px 10px rgba(79, 172, 254, 0.4)' : 'none'
+                      }}
                     >
                       {idx + 1}
                     </button>
                   ))}
 
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  <button 
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 text-sm font-bold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    style={{ padding: "6px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", margin: 0, color: "white", cursor: currentPage === totalPages ? "not-allowed" : "pointer", opacity: currentPage === totalPages ? 0.5 : 1, fontWeight: 'bold' }}
                   >
                     Next
                   </button>
                 </div>
               </div>
             )}
-            
           </div>
-        )}
-      </div>
+        </div>
 
+      </div>
     </div>
   );
 }

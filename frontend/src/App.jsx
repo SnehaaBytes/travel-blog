@@ -8,7 +8,7 @@ import Navbar from "./components/Navbar";
 
 // 👇 IMPORT THE NEW ADMIN ROUTE 
 import AdminRoute from "./components/AdminRoute";
-
+import Agencies from "./components/Agencies"; 
 import Home from "./components/Home/Home";
 import Destinations from "./components/Destinations/Destinations";
 import DestinationDetails from "./components/Destinations/DestinationDetails";
@@ -27,6 +27,7 @@ import BookingPage from "./pages/BookingPage";
 import ManageReviews from "./admin/pages/ManageReviews";
 import PaymentPage from "./pages/PaymentPage";
 import Success from "./pages/Success";
+import ManageAgencies from './admin/pages/ManageAgencies'; 
 
 import "./App.css";
 
@@ -60,7 +61,7 @@ function App() {
                 <Route path="/book/:id" element={<BookingPage />} />
                 <Route path="/payment" element={<PaymentPage />} />
                 <Route path="/success" element={<Success />} />
-                 <Route path="/review" element={<Review />} />
+                <Route path="/agencies" element={<Agencies />} />
 
               </Route>
 
@@ -81,7 +82,10 @@ function App() {
                 <Route index element={<Dashboard />} />
                 <Route path="destinations" element={<ManageDestinations />} />
                 <Route path="bookings" element={<Bookings />} />
-                 <Route path="reviews" element={<ManageReviews />} />  
+                <Route path="reviews" element={<ManageReviews />} />  
+                
+                {/* ✅ AGENCIES ROUTE PROPERLY SECURED INSIDE THE ADMIN DASHBOARD */}
+                <Route path="agencies" element={<ManageAgencies />} />
               </Route>
 
             </Routes>

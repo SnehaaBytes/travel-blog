@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FiPlus, FiSearch, FiEdit2, FiTrash2, FiMapPin, FiArrowLeft } from "react-icons/fi";
+import { FiPlus, FiSearch, FiEdit2, FiTrash2, FiMapPin, FiArrowLeft, FiImage } from "react-icons/fi";
 import "./ManageDestinations.css";
 
 function ManageDestinations() {
@@ -8,14 +8,16 @@ function ManageDestinations() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
 
-  // 🔥 NEW: Pagination State
+  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Change this to show more/less items per page
+  const itemsPerPage = 5; 
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [imgSrc, setImgSrc] = useState("");
+  const [price, setPrice] = useState(""); 
+  
   const [bestTimeToVisit, setBestTimeToVisit] = useState("");
   const [tips, setTips] = useState("");
   const [activities, setActivities] = useState("");
@@ -49,6 +51,7 @@ function ManageDestinations() {
       description,
       location,
       imgSrc,
+      price: price ? Number(price) : 12499, 
       bestTimeToVisit,
       tips,
       mapLink,
@@ -87,7 +90,6 @@ function ManageDestinations() {
         await axios.delete(`${API_URL}/${id}`);
         fetchDestinations();
         
-        // Auto go-back a page if deleting the last item on the current page
         if (paginatedDestinations.length === 1 && currentPage > 1) {
           setCurrentPage(currentPage - 1);
         }
@@ -102,6 +104,7 @@ function ManageDestinations() {
     setDescription(dest.description);
     setLocation(dest.location);
     setImgSrc(dest.imgSrc);
+    setPrice(dest.price || ""); 
     setBestTimeToVisit(dest.bestTimeToVisit);
     setTips(dest.tips);
     setMapLink(dest.mapLink || "");
@@ -121,6 +124,7 @@ function ManageDestinations() {
       setDescription("");
       setLocation("");
       setImgSrc("");
+      setPrice(""); 
       setBestTimeToVisit("");
       setTips("");
       setActivities("");
@@ -139,12 +143,10 @@ function ManageDestinations() {
     dest.location?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // 🔥 NEW: Reset to page 1 automatically if the user types in the search bar
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  // 🔥 NEW: Calculate Pages and Slice Data
   const totalPages = Math.ceil(filteredDestinations.length / itemsPerPage) || 1;
   const paginatedDestinations = filteredDestinations.slice(
     (currentPage - 1) * itemsPerPage,
@@ -153,16 +155,13 @@ function ManageDestinations() {
 
   return (
     <div className="md-wrapper">
-      {/* Ambient background glows inherited from Dashboard style */}
       <div className="md-background-glow glow-primary"></div>
       <div className="md-background-glow glow-secondary"></div>
 
       <div className="md-container">
         
-        {/* === VIEW 1: TABLE LIBRARY === */}
         {!showForm && (
           <div className="glass-panel fade-in md-full-height">
-            {/* Toolbar Header */}
             <div className="md-toolbar">
               <div className="md-toolbar-left">
                 <h3>Destination Directory</h3>
@@ -191,6 +190,7 @@ function ManageDestinations() {
                 <thead>
                   <tr>
                     <th>Location Data</th>
+                    <th>Price</th>
                     <th>Best Season</th>
                     <th>Actions</th>
                   </tr>
@@ -198,12 +198,11 @@ function ManageDestinations() {
                 <tbody>
                   {filteredDestinations.length === 0 ? (
                     <tr>
-                      <td colSpan="3" className="md-empty-state">
+                      <td colSpan="4" className="md-empty-state">
                         {searchQuery ? "No matching locations." : "No destinations found. Add one above!"}
                       </td>
                     </tr>
                   ) : (
-                    // 🔥 NEW: Map through paginatedDestinations instead of filteredDestinations
                     paginatedDestinations.map((dest) => (
                       <tr key={dest._id} className="md-table-row">
                         <td>
@@ -218,6 +217,9 @@ function ManageDestinations() {
                               <span className="md-row-subtitle"><FiMapPin /> {dest.location}</span>
                             </div>
                           </div>
+                        </td>
+                        <td>
+                           <span style={{color: '#f5c842', fontWeight: 600}}>₹{dest.price ? dest.price.toLocaleString('en-IN') : '12,499'}</span>
                         </td>
                         <td>
                           <span className="md-season-badge">{dest.bestTimeToVisit || "Year Round"}</span>
@@ -238,7 +240,6 @@ function ManageDestinations() {
                 </tbody>
               </table>
               
-              {/* 🔥 NEW: Pagination Footer Controls */}
               {filteredDestinations.length > 0 && (
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
                   <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.6)" }}>
@@ -283,7 +284,6 @@ function ManageDestinations() {
           </div>
         )}
 
-        {/* === VIEW 2: FORM SECTION === */}
         {showForm && (
           <div className="glass-panel fade-in">
             <div className="md-form-header">
@@ -296,7 +296,6 @@ function ManageDestinations() {
               {editId && <span className="md-badge editing"><span className="pulse-dot"></span> EDITING MODE</span>}
             </div>
 
-            {/* Form Fields wrapped in glass sections */}
             <div className="md-form-section">
               <h4 className="md-section-label">Core Details</h4>
               <div className="md-grid-2">
@@ -305,17 +304,48 @@ function ManageDestinations() {
                   <input type="text" placeholder="e.g. Manali" value={title} onChange={(e) => setTitle(e.target.value)} />
                 </div>
                 <div className="md-input-group">
+                  <label>Price Per Person (₹)</label>
+                  <input type="number" placeholder="e.g. 15000" value={price} onChange={(e) => setPrice(e.target.value)} />
+                </div>
+                <div className="md-input-group">
                   <label>Location</label>
                   <input type="text" placeholder="e.g. India" value={location} onChange={(e) => setLocation(e.target.value)} />
                 </div>
+                
+                {/* 👉 NEW: Native File Picker for selecting image names directly from device! */}
                 <div className="md-input-group">
-                  <label>Image Name</label>
-                  <input type="text" placeholder="e.g. manali.jpg" value={imgSrc} onChange={(e) => setImgSrc(e.target.value)} />
+                  <label>Destination Image</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    
+                    <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 18px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', color: 'white', fontWeight: 'bold', fontSize: '14px', transition: 'all 0.2s', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                      <FiImage style={{ fontSize: '18px' }} />
+                      Choose File
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        style={{ display: 'none' }} 
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                             setImgSrc(file.name); 
+                          }
+                        }} 
+                      />
+                    </label>
+
+                    {imgSrc && (
+                       <span style={{ fontSize: '13px', color: '#4facfe', fontWeight: '600', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '6px 12px', background: 'rgba(79, 172, 254, 0.1)', borderRadius: '6px', border: '1px solid rgba(79, 172, 254, 0.3)' }}>
+                          {imgSrc}
+                       </span>
+                    )}
+
+                  </div>
                 </div>
-                <div className="md-input-group">
-                  <label>Google Map Link</label>
-                  <input type="text" placeholder="https://..." value={mapLink} onChange={(e) => setMapLink(e.target.value)} />
-                </div>
+
+              </div>
+              <div className="md-input-group mt-xl">
+                <label>Google Map Link</label>
+                <input type="text" placeholder="https://..." value={mapLink} onChange={(e) => setMapLink(e.target.value)} />
               </div>
               <div className="md-input-group mt-xl">
                 <label>Description</label>
