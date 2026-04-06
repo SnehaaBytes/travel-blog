@@ -2,24 +2,71 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import DestinationDetails from "./DestinationDetails";
+import { useAuth } from "../../services/AuthContext";
 import "./Destinations.css";
 
 const Destinations = () => {
   const [destinationsData, setDestinationsData] = useState([]);
   const [selectedDest, setSelectedDest] = useState(null);
   const [openedFromHome, setOpenedFromHome] = useState(false);
-
+  const { user } = useAuth();
+  const [favoriteIds, setFavoriteIds] = useState([]);
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  /* ================= FETCH DATA ================= */
+  /* ================= FETCH DATA & FAVORITES ================= */
   useEffect(() => {
+    // 1. Fetch all destinations
     axios
       .get("http://localhost:5000/api/destinations")
       .then((res) => setDestinationsData(res.data))
       .catch((err) => console.error(err));
-  }, []);
+
+    // 2. Fetch User's Favorites if logged in
+    if (user) {
+      axios.get(`http://localhost:5000/api/users/${user.username}/dashboard`)
+        .then(res => {
+          // Extract just the IDs so we can easily check them
+          const favIds = res.data.data.favorites.map(fav => fav._id || fav);
+          setFavoriteIds(favIds);
+        })
+        .catch(err => console.error("Error fetching favorites", err));
+    }
+  }, [user]);
+
+  /* ================= FAVORITE TOGGLE LOGIC ================= */
+  const toggleFavorite = async (e, destinationId) => {
+    e.stopPropagation(); // Stop the card from opening the modal when clicking the heart!
+    
+    if (!user) {
+      alert("You must be logged in to favorite a destination!");
+      return;
+    }
+
+    // Optimistic UI Update (Change it on screen instantly)
+    const isAlreadyFav = favoriteIds.includes(destinationId);
+    if (isAlreadyFav) {
+      setFavoriteIds(favoriteIds.filter(id => id !== destinationId));
+    } else {
+      setFavoriteIds([...favoriteIds, destinationId]);
+    }
+
+    // Send the request to the database
+    try {
+      await axios.post(`http://localhost:5000/api/users/${user.username}/favorites`, {
+        destinationId
+      });
+    } catch (err) {
+      console.error("Failed to update favorite", err);
+      // Revert if it failed (optional but good practice)
+      if (isAlreadyFav) {
+        setFavoriteIds([...favoriteIds, destinationId]);
+      } else {
+        setFavoriteIds(favoriteIds.filter(id => id !== destinationId));
+      }
+    }
+  };
 
   /* ================= SEARCH LOGIC ================= */
   const search = (searchParams.get("search") || "").trim().toLowerCase();
@@ -59,7 +106,6 @@ const Destinations = () => {
         <div className="absolute bottom-[-10%] right-[-5%] w-[30%] h-[30%] rounded-full bg-indigo-400/20 dark:bg-purple-600/10 blur-[120px]" />
       </div>
 
-      {/* 👉 HEADER SECTION (SPACING FIXED HERE) */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-8 pt-10 pb-10 lg:pt-15 lg:pb-14">
         <div className="text-center max-w-3xl mx-auto space-y-6">
           <div className="inline-block px-5 py-1.5 rounded-full bg-blue-100/50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/50 backdrop-blur-md mb-2 shadow-sm">
@@ -81,7 +127,6 @@ const Destinations = () => {
 
       <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto px-6 sm:px-8 pb-24">
         
-        {/* EMPTY STATE */}
         {filteredDestinations.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 sm:py-32 text-center bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-slate-200/60 dark:border-slate-800/60 shadow-xl shadow-slate-200/20 dark:shadow-none mx-auto max-w-2xl">
             <div className="w-20 h-20 mb-6 bg-slate-100 dark:bg-slate-800/80 rounded-full flex items-center justify-center shadow-inner">
@@ -107,7 +152,6 @@ const Destinations = () => {
           </div>
         ) : (
 
-          /* GRID */
           <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
             {filteredDestinations.map((dest) => (
               <div
@@ -116,7 +160,25 @@ const Destinations = () => {
               >
                 {/* IMAGE CONTAINER */}
                 <div className="relative h-60 overflow-hidden m-2 rounded-[1.5rem]">
-                  <div className="absolute inset-0 bg-slate-200 dark:bg-slate-800 animate-pulse" /> {/* Loading Placeholder */}
+                  <div className="absolute inset-0 bg-slate-200 dark:bg-slate-800 animate-pulse" />
+                  
+                  {/* 👉 NEW: SVG HEART BUTTON */}
+                  <button
+                    onClick={(e) => toggleFavorite(e, dest._id)}
+                    className="absolute top-4 right-4 z-20 p-2.5 bg-white/30 hover:bg-white/90 dark:bg-black/30 dark:hover:bg-black/80 backdrop-blur-md rounded-full shadow-lg transition-all duration-300 group/fav"
+                  >
+                    <svg 
+                      className={`w-6 h-6 transform transition-transform duration-300 group-hover/fav:scale-110 ${
+                        favoriteIds.includes(dest._id) 
+                          ? "text-red-500 fill-current" // Solid Red if favorited!
+                          : "text-white fill-transparent stroke-current stroke-[2px]" // Transparent outlined if not
+                      }`} 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                    </svg>
+                  </button>
+
                   <img
                     src={`/images/${dest.imgSrc}`}
                     alt={dest.title}
@@ -126,7 +188,6 @@ const Destinations = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </div>
 
-                {/* CARD CONTENT */}
                 <div className="px-6 py-5 flex flex-col flex-grow">
                   <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3 line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                     {dest.title}
@@ -170,10 +231,8 @@ const Destinations = () => {
             }}
           />
 
-          {/* MODAL CONTAINER */}
           <div className="relative w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] flex flex-col bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-white/20 dark:border-slate-700 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-300">
             
-            {/* FLOATING CLOSE BUTTON */}
             <div className="absolute top-4 right-4 z-20">
               <button
                 className="p-2.5 bg-black/40 hover:bg-black/60 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-all transform hover:scale-105 active:scale-95"
@@ -189,12 +248,10 @@ const Destinations = () => {
               </button>
             </div>
 
-            {/* MODAL SCROLLABLE CONTENT */}
             <div className="overflow-y-auto overflow-x-hidden flex-1 p-0 custom-scrollbar">
               <DestinationDetails destination={selectedDest} />
             </div>
 
-            {/* MODAL FOOTER */}
             <div className="p-6 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 flex justify-end">
               <button
                 onClick={() => {

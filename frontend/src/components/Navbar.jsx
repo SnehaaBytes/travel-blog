@@ -3,26 +3,23 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FiSearch, FiMenu, FiX, FiSun, FiMoon } from "react-icons/fi";
 import { useAuth } from "../services/AuthContext";
 import { useTheme } from "../context/ThemeContext";
-import axios from "axios"; // 👉 NEW: We import axios to fetch live data!
+import axios from "axios"; 
 
 /* ================= SEARCH BAR ================= */
 const SearchBar = ({ onSearchCallback, placeholder = "Search..." }) => {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-  // 👉 NEW: State to hold our live database destinations
   const [liveDestinations, setLiveDestinations] = useState([]); 
   
   const wrapperRef = useRef(null);
   const navigate = useNavigate();
 
-  // 👉 NEW: Fetch the live destinations exactly once when the search bar loads!
   useEffect(() => {
     axios.get("http://localhost:5000/api/destinations")
       .then(res => setLiveDestinations(res.data))
       .catch(err => console.error("Error fetching for search bar:", err));
   }, []);
 
-  // Close suggestions on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -33,7 +30,6 @@ const SearchBar = ({ onSearchCallback, placeholder = "Search..." }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Debounce (Now using liveDestinations instead of frozen data!)
   useEffect(() => {
     const delay = setTimeout(() => {
       const trimmed = query.trim().toLowerCase();
@@ -43,7 +39,6 @@ const SearchBar = ({ onSearchCallback, placeholder = "Search..." }) => {
         return;
       }
 
-      // 👉 MAGIC: Now filters exactly against the live database!
       const filtered = liveDestinations.filter((dest) =>
         dest.title?.toLowerCase().includes(trimmed)
       );
@@ -112,7 +107,11 @@ const Navbar = () => {
   const location = useLocation();
 
   const baseNavLinks = ["Home", "Destinations", "Explore Map", "Review", "Agencies", "About"];
-  const navLinks = user?.isAdmin ? [...baseNavLinks, "Admin Panel"] : baseNavLinks;
+  
+  // 👉 NEW: Dynamically add "Dashboard" if logged in, and "Admin Panel" if admin
+  let navLinks = [...baseNavLinks];
+  if (user) navLinks.push("Dashboard");
+  if (user?.isAdmin) navLinks.push("Admin Panel");
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 40);
@@ -128,6 +127,7 @@ const Navbar = () => {
     if (item === "Home") return "/";
     if (item === "Explore Map") return "/explore-map";
     if (item === "Admin Panel") return "/admin"; 
+    if (item === "Dashboard") return "/dashboard"; // 👉 NEW: Tell the router how to find the dashboard!
     return `/${item.toLowerCase()}`; 
   };
 
@@ -152,6 +152,7 @@ const Navbar = () => {
               {navLinks.map((item) => {
                 const isCurrent = location.pathname === getRoutePath(item);
                 const isAdminLink = item === "Admin Panel";
+                const isDashboard = item === "Dashboard"; // Style it slightly differently if you want!
                 
                 return (
                   <Link
@@ -162,7 +163,9 @@ const Navbar = () => {
                         ? "text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50 dark:bg-indigo-500/10 px-4 py-1.5 rounded-full border border-indigo-200 dark:border-indigo-500/30 hover:bg-indigo-100 dark:hover:bg-indigo-500/20"
                         : isCurrent
                           ? "text-indigo-600 dark:text-indigo-400"
-                          : "text-slate-600 hover:text-indigo-600 dark:text-white/70 dark:hover:text-indigo-400"
+                          : isDashboard 
+                            ? "text-indigo-500 dark:text-indigo-300 font-semibold"
+                            : "text-slate-600 hover:text-indigo-600 dark:text-white/70 dark:hover:text-indigo-400"
                     }`}
                   >
                     {item}

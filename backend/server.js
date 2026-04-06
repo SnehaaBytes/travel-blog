@@ -1,4 +1,3 @@
-// server.js
 import paymentRoutes from "./routes/payment.js";
 import agencyRoute from './routes/agencyRoutes.js';
 import express from 'express';
@@ -60,6 +59,7 @@ async function initializeDestinations() {
     const count = await Destination.countDocuments();
     if (count === 0) {
       const destinations = [
+        // ... (truncated for brevity in setup, kept exact same as yours)
         { title: 'Kashmir', description: 'Experience the Himalayas...', imgSrc: 'images/kashmir.jpg', isPopular: true },
         { title: 'Varanasi', description: 'Explore Kashi...', imgSrc: 'images/varanasi.jpg', isPopular: false },
         { title: 'Manali', description: 'Explore this trending destination...', imgSrc: 'images/manali.jpg', isPopular: false },
@@ -300,6 +300,66 @@ app.delete('/api/reviews/:id', async (req, res) => {
   }
 });
 
+
+// ========================
+// NEW USER DASHBOARD ROUTES
+// ========================
+
+// 1. Get User Dashboard Data (Uses username from the URL)
+app.get('/api/users/:username/dashboard', async (req, res) => {
+  try {
+    const { username } = req.params;
+    
+    // We use the 'name' field in your Booking model and whatever field you use for author in Review model.
+    const [bookings, reviews, user] = await Promise.all([
+      Booking.find({ name: username }),
+      Review.find({ username: username }), // assuming your review schema saves the username
+      User.findOne({ username }).populate('favorites')
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        bookings,
+        reviews,
+        favorites: user && user.favorites ? user.favorites : []
+      }
+    });
+
+  } catch (error) {
+    console.error("Dashboard Fetch Error:", error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+});
+
+// 2. Add or Remove a favorite destination for a user
+app.post('/api/users/:username/favorites', async (req, res) => {
+  try {
+    const { username } = req.params;
+    const { destinationId } = req.body;
+
+    const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Initialize favorites array if it doesn't exist
+    if (!user.favorites) user.favorites = [];
+
+    const isFavorite = user.favorites.includes(destinationId);
+
+    if (isFavorite) {
+      // Remove it
+      user.favorites = user.favorites.filter(id => id.toString() !== destinationId);
+    } else {
+      // Add it
+      user.favorites.push(destinationId);
+    }
+
+    await user.save();
+    res.status(200).json({ message: "Favorites updated", favorites: user.favorites });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating favorites', error: error.message });
+  }
+});
 
 // ========================
 // SERVER

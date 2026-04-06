@@ -4,8 +4,12 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   
   // 👉 ADD THIS: Default gives regular user access. You can manually set this to true directly in MongoDB for your admin account.
-  isAdmin: { type: Boolean, default: false } 
-});
+  isAdmin: { type: Boolean, default: false },
+  favorites: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Destination'
+  }]
+}, { timestamps: true });
 
 
 const User = mongoose.model('User', userSchema);

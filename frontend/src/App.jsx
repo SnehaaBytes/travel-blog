@@ -1,12 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
 import { AuthProvider } from "./services/AuthContext";
-
-// 👇 IMPORT THE THEME PROVIDER TO WRAP THE ENTIRE APP
 import { ThemeProvider } from "./context/ThemeContext";
-
 import Navbar from "./components/Navbar";
-
-// 👇 IMPORT THE NEW ADMIN ROUTE 
 import AdminRoute from "./components/AdminRoute";
 import Agencies from "./components/Agencies"; 
 import Home from "./components/Home/Home";
@@ -15,10 +10,9 @@ import DestinationDetails from "./components/Destinations/DestinationDetails";
 import About from "./components/About/About";
 import Review from "./components/Review/Review";
 import ExploreMap from "./components/ExploreMap";
-
+import UserDashboard from './pages/UserDashboard';
 import Login from "./components/Auth/Login";
 import Register from "./components/Auth/Register";
-
 import Dashboard from "./admin/pages/Dashboard";
 import ManageDestinations from "./admin/pages/ManageDestinations";
 import Bookings from "./admin/pages/Bookings";
@@ -28,7 +22,6 @@ import ManageReviews from "./admin/pages/ManageReviews";
 import PaymentPage from "./pages/PaymentPage";
 import Success from "./pages/Success";
 import ManageAgencies from './admin/pages/ManageAgencies'; 
-
 import "./App.css";
 
 // Inline layout (no separate file)
@@ -46,7 +39,6 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <Router>
-          {/* 👇 ADDED TAILWIND GLOBAL CLASSES FOR DARK MODE BACKGROUND & TEXT */}
           <div className="app min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-slate-50 transition-colors duration-300">
             <Routes>
 
@@ -62,7 +54,7 @@ function App() {
                 <Route path="/payment" element={<PaymentPage />} />
                 <Route path="/success" element={<Success />} />
                 <Route path="/agencies" element={<Agencies />} />
-
+                <Route path="/dashboard" element={<UserDashboard />} />
               </Route>
 
               {/* AUTH ROUTES */}

@@ -78,41 +78,40 @@ const Home = () => {
     testimonialsRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleReviewSubmit = async (e) => {
+    const handleReviewSubmit = async (e) => {
     e.preventDefault();
-    if (!reviewForm.name || !reviewForm.destination || !reviewForm.review) return;
+    if (!reviewForm.destination || !reviewForm.review) return; // We no longer check reviewForm.name
     
     // --- SEND TO DATABASE ---
     const newGlobalReview = {
-      name: reviewForm.name,
-      destination: reviewForm.destination, // Let's send destination to DB
+      name: user.username, // 👉 Instantly takes their logged-in username!
+      destination: reviewForm.destination,
       rating: parseInt(reviewForm.rating) || 5,
       comment: reviewForm.review, 
       blogUrl: reviewForm.blogUrl 
     };
 
     try {
-      // THIS is the magic line that saves it to your MongoDB!
       await axios.post('http://localhost:5000/api/reviews', newGlobalReview);
       
       // Update Home Page Testimonials visually below the hero
       const newTestimonial = {
         id: Date.now(),
-        name: reviewForm.name,
+        name: user.username, // 👉 Uses the username for the UI
         location: reviewForm.destination,
-        image: `https://ui-avatars.com/api/?name=${encodeURIComponent(reviewForm.name)}&background=random`,
+        image: `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=random`,
         text: reviewForm.review,
         rating: parseInt(reviewForm.rating) || 5
       };
       setTestimonials([newTestimonial, ...testimonials.slice(0, 2)]);
       
-      // Clear the inputs
+      // Clear the inputs (except name)
       setReviewForm({ name: '', destination: '', rating: 5, review: '', blogUrl: '' });
       
       alert("Success! Your review has been saved to the Database and sent to the Admin Panel!");
     } catch (err) {
       console.error(err);
-      alert("Uh oh! Failed to save review to the database. Make sure your backend node server isn't crashing.");
+      alert("Uh oh! Failed to save review to the database.");
     }
   };
 
@@ -314,17 +313,16 @@ const Home = () => {
             {user ? (
               
               <form onSubmit={handleReviewSubmit} className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-                <div className="col-span-1">
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Full Name</label>
+                                <div className="col-span-1">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Posting as</label>
                   <input
                     type="text"
-                    required
-                    value={reviewForm.name}
-                    onChange={(e) => setReviewForm({...reviewForm, name: e.target.value})}
-                    placeholder="e.g. Rahul Sharma"
-                    className="w-full px-5 py-3.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                    readOnly
+                    value={user.username}
+                    className="w-full px-5 py-3.5 bg-gray-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-500 dark:text-slate-400 cursor-not-allowed outline-none transition-colors shadow-inner font-bold"
                   />
                 </div>
+
 
                 <div className="col-span-1">
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Select Destination</label>
@@ -378,18 +376,6 @@ const Home = () => {
                     placeholder="https://yourblog.com/my-trip"
                     className="w-full px-5 py-3.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                   />
-                </div>
-
-                <div className="col-span-1 md:col-span-2">
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Upload Pictures (Optional)</label>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={(e) => setReviewForm({...reviewForm, pictures: e.target.files})}
-                    className="w-full px-5 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-500 dark:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-slate-700 dark:file:text-slate-200 dark:hover:file:bg-slate-600 file:transition-colors cursor-pointer"
-                  />
-                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">You can select multiple photos in PNG, JPG, or GIF format.</p>
                 </div>
 
                 <div className="col-span-1 md:col-span-2 mt-4 text-center">
