@@ -256,7 +256,12 @@ const Destinations = () => {
               <button
                 onClick={() => {
                   setSelectedDest(null);
-                  navigate(`/book/${selectedDest._id}`);
+                  if (user) {
+                    navigate(`/book/${selectedDest._id}`);
+                  } else {
+                    alert("Please log in to book this experience!");
+                    navigate('/login');
+                  }
                 }}
                 className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-xl shadow-blue-500/30 transform transition-all hover:-translate-y-1 active:translate-y-0"
               >
