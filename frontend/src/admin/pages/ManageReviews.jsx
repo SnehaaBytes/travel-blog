@@ -16,7 +16,7 @@ const ManageReviews = () => {
   const fetchReviews = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('http://localhost:5000/api/reviews/admin'); 
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/reviews/admin`); 
       setReviews(res.data);
     } catch (error) {
       console.error("Error fetching reviews", error);
@@ -32,7 +32,7 @@ const ManageReviews = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to permanently delete this review?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/reviews/${id}`);
+        await axios.delete(`${import.meta.env.VITE_API_URL}/reviews/${id}`);
         const updatedReviews = reviews.filter(review => review._id !== id);
         setReviews(updatedReviews);
         
@@ -49,7 +49,7 @@ const ManageReviews = () => {
 
   const updateStatus = async (id, newStatus) => {
     try {
-      await axios.put(`http://localhost:5000/api/reviews/${id}/status`, { status: newStatus });
+      await axios.put(`${import.meta.env.VITE_API_URL}/reviews/${id}/status`, { status: newStatus });
       setReviews(reviews.map(review => review._id === id ? { ...review, status: newStatus } : review));
     } catch (error) {
       console.error("Error updating review status", error);

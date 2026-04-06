@@ -1,7 +1,7 @@
 const config = {
   // API configuration
   api: {
-    baseUrl:  'http://localhost:5000',
+    baseUrl: import.meta.env.VITE_API_URL.replace('/api', ''),
     timeout: 10000, // 10 seconds
   },
 

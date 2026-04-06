@@ -35,7 +35,7 @@ function PaymentPage() {
     setLoading(true);
     try {
       const exactAmount = totalPrice || form.amount || 999;
-      const { data } = await axios.post("http://localhost:5000/api/payment/create-order", {
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/payment/create-order`, {
         amount: exactAmount,
         bookingId: form._id || `booking_${Date.now()}`,
       });
@@ -51,7 +51,7 @@ function PaymentPage() {
         order_id: order.id,
         handler: async (response) => {
           try {
-            const verify = await axios.post("http://localhost:5000/api/payment/verify", {
+            const verify = await axios.post(`${import.meta.env.VITE_API_URL}/payment/verify`, {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
@@ -62,7 +62,7 @@ function PaymentPage() {
               return;
             }
 
-            await axios.post("http://localhost:5000/api/bookings", {
+            await axios.post(`${import.meta.env.VITE_API_URL}/bookings`, {
               ...form,
               destination,
               paymentId: verify.data.paymentId,

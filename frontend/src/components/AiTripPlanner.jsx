@@ -355,7 +355,7 @@ export default function AiTripPlanner() {
   async function callAI(msgs, systemPrompt, maxTokens = 2000) {
 setError(null);
 try {
-const res = await fetch("http://localhost:5000/api/ai/chat", {
+const res = await fetch(`${import.meta.env.VITE_API_URL}/ai/chat`, {
 method: "POST",
 headers: { "Content-Type": "application/json" },
 body: JSON.stringify({

@@ -9,7 +9,7 @@ const AllDestinations = () => {
   const imgRefs = useRef({});
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/destinations")
+    axios.get(`${import.meta.env.VITE_API_URL}/destinations`)
       .then(res => setDestinations(res.data))
       .catch(err => console.error(err));
   }, []);

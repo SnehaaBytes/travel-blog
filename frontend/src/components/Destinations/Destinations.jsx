@@ -19,13 +19,13 @@ const Destinations = () => {
   useEffect(() => {
     // 1. Fetch all destinations
     axios
-      .get("http://localhost:5000/api/destinations")
+      .get(`${import.meta.env.VITE_API_URL}/destinations`)
       .then((res) => setDestinationsData(res.data))
       .catch((err) => console.error(err));
 
     // 2. Fetch User's Favorites if logged in
     if (user) {
-      axios.get(`http://localhost:5000/api/users/${user.username}/dashboard`)
+      axios.get(`${import.meta.env.VITE_API_URL}/users/${user.username}/dashboard`)
         .then(res => {
           // Extract just the IDs so we can easily check them
           const favIds = res.data.data.favorites.map(fav => fav._id || fav);
@@ -54,7 +54,7 @@ const Destinations = () => {
 
     // Send the request to the database
     try {
-      await axios.post(`http://localhost:5000/api/users/${user.username}/favorites`, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/users/${user.username}/favorites`, {
         destinationId
       });
     } catch (err) {

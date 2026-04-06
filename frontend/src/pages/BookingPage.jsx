@@ -20,14 +20,14 @@ function BookingPage() {
   const minDate = today.toISOString().split("T")[0];
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/destinations")
+    axios.get(`${import.meta.env.VITE_API_URL}/destinations`)
       .then(res => {
         const found = res.data.find(d => String(d._id) === id); 
         setDestination(found);
       })
       .catch(err => console.error(err));
 
-    axios.get("http://localhost:5000/api/agencies")
+    axios.get(`${import.meta.env.VITE_API_URL}/agencies`)
       .then(res => {
         setAgenciesList(res.data.data || []);
       })

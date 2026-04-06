@@ -40,7 +40,7 @@ const Review = () => {
     // 1. Fetch only the Approved real reviews from MongoDB!
     const fetchApprovedReviews = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/reviews');
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/reviews`);
         // 2. Put the real DB reviews above the starter examples!
         setReviews([...res.data, ...starterReviews]);
       } catch (err) {

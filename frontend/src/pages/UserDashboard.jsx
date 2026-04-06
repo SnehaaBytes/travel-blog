@@ -18,12 +18,12 @@ const UserDashboard = () => {
         if (!username) return; // Stop if not logged in
         
         // 1. Fetch Bookings and Favorites from the original dashboard route
-        const response = await axios.get(`http://localhost:5000/api/users/${username}/dashboard`);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/users/${username}/dashboard`);
         
         let myReviews = [];
         try {
           // 2. Fetch EVERY review from your perfectly working generic Reviews API
-          const allReviewsRes = await axios.get(`http://localhost:5000/api/reviews`);
+          const allReviewsRes = await axios.get(`${import.meta.env.VITE_API_URL}/reviews`);
           
           // 3. Keep ONLY the ones where the "name" matches your username!
           // (Using toLowerCase so it matches even if you typed "Neha5678")

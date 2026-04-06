@@ -28,7 +28,7 @@ const ManageAgencies = () => {
   const fetchAgencies = async () => {
     try {
       // Using axios for consistency and better error handling
-      const response = await axios.get('http://localhost:5000/api/agencies');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/agencies`);
       setAgencies(response.data.data || response.data);
     } catch (error) {
       console.error('Error fetching agencies:', error);
@@ -50,7 +50,7 @@ const ManageAgencies = () => {
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevents page reload on form submit
     try {
-      await axios.post('http://localhost:5000/api/agencies', formData);
+      await axios.post(`${import.meta.env.VITE_API_URL}/agencies`, formData);
       
       resetForm();
       fetchAgencies();
@@ -66,7 +66,7 @@ const ManageAgencies = () => {
     if(!window.confirm("Are you sure you want to delete this partner agency?")) return;
     
     try {
-      await axios.delete(`http://localhost:5000/api/agencies/${id}`);
+      await axios.delete(`${import.meta.env.VITE_API_URL}/agencies/${id}`);
       
       fetchAgencies();
       if (paginatedAgencies.length === 1 && currentPage > 1) {

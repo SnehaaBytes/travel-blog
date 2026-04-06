@@ -20,7 +20,7 @@ function Bookings() {
   const fetchBookings = async () => {
     setIsLoading(true);
     try {
-      const res = await axios.get("http://localhost:5000/api/bookings");
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/bookings`);
       setBookings(res.data);
     } catch (err) {
       console.error(err);
@@ -32,7 +32,7 @@ function Bookings() {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this booking?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/bookings/${id}`);
+        await axios.delete(`${import.meta.env.VITE_API_URL}/bookings/${id}`);
         const updatedBookings = bookings.filter((b) => b._id !== id);
         setBookings(updatedBookings);
         

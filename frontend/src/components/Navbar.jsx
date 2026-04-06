@@ -15,7 +15,7 @@ const SearchBar = ({ onSearchCallback, placeholder = "Search..." }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/destinations")
+    axios.get(`${import.meta.env.VITE_API_URL}/destinations`)
       .then(res => setLiveDestinations(res.data))
       .catch(err => console.error("Error fetching for search bar:", err));
   }, []);

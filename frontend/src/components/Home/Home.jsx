@@ -60,7 +60,7 @@ const Home = () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await axios.get("http://localhost:5000/api/destinations");
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/destinations`);
       setDestinations(res.data);
     } catch (err) {
       setError('Failed to load destinations. Please try again later.');
@@ -92,7 +92,7 @@ const Home = () => {
     };
 
     try {
-      await axios.post('http://localhost:5000/api/reviews', newGlobalReview);
+      await axios.post(`${import.meta.env.VITE_API_URL}/reviews`, newGlobalReview);
       
       // Update Home Page Testimonials visually below the hero
       const newTestimonial = {

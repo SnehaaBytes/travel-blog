@@ -47,7 +47,7 @@ export default function ExploreMap() {
 
   // === 1. FETCH FROM DATABASE ===
   useEffect(() => {
-    axios.get('http://localhost:5000/api/destinations')
+    axios.get(`${import.meta.env.VITE_API_URL}/destinations`)
       .then(res => {
         const dbDests = res.data.map((d, index) => {
           const coords = coordinateMap[d.title] || { lat: 20.5937, lng: 78.9629 };
